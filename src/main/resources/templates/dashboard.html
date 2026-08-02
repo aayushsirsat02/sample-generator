@@ -1,0 +1,1392 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description"
+        content="Sample Report Generator Dashboard - Create, manage and download market research reports">
+
+    <meta name="_csrf" th:content="${_csrf?.token}">
+    <meta name="_csrf_header" th:content="${_csrf?.headerName}">
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    <title>Dashboard | Sample Report Generator</title>
+    <link rel="stylesheet" th:href="@{/css/dashboard.css}">
+</head>
+
+
+<body>
+
+
+    <div class="dashboard-container">
+
+
+        <!-- =====================================================
+         SIDEBAR
+    ====================================================== -->
+
+        <aside class="sidebar">
+
+
+            <!-- LOGO -->
+
+            <div class="logo">
+
+                <div class="logo-icon">
+                    <i class="fa-solid fa-chart-line"></i>
+                </div>
+
+                <div class="logo-text">
+                    <span class="logo-main">Spherical</span>
+                    <span class="logo-sub">Insights</span>
+                </div>
+
+            </div>
+
+
+
+            <!-- USER INFORMATION -->
+
+            <div class="user-info">
+
+                <div class="user-avatar" id="userAvatar">A</div>
+
+                <div class="user-details">
+
+                    <div class="username" id="sidebarUsername">
+                        Loading...
+                    </div>
+
+                    <div class="user-role-badge" id="sidebarUserRole">
+                        User
+                    </div>
+
+                </div>
+
+            </div>
+
+
+
+            <!-- NAVIGATION -->
+
+            <nav class="sidebar-navigation">
+
+
+                <button class="navigation-button active" data-section="dashboard"
+                    onclick="showSection('dashboard', this)">
+
+                    <span class="navigation-icon">
+                        <i class="fa-solid fa-gauge-high"></i>
+                    </span>
+
+                    <span class="navigation-text">
+                        Dashboard
+                    </span>
+
+                </button>
+
+
+
+                <button class="navigation-button" data-section="create-sample"
+                    onclick="showSection('create-sample', this)">
+
+                    <span class="navigation-icon">
+                        <i class="fa-solid fa-plus-circle"></i>
+                    </span>
+
+                    <span class="navigation-text">
+                        Create Sample
+                    </span>
+
+                </button>
+
+
+
+                <button class="navigation-button" data-section="edit-sample" onclick="showSection('edit-sample', this)">
+
+                    <span class="navigation-icon">
+                        <i class="fa-solid fa-pen-to-square"></i>
+                    </span>
+
+                    <span class="navigation-text">
+                        Edit / Update
+                    </span>
+
+                </button>
+
+
+
+                <!-- ADMIN ONLY -->
+
+                <button class="navigation-button admin-only" data-section="users" onclick="showSection('users', this)">
+
+                    <span class="navigation-icon">
+                        <i class="fa-solid fa-users"></i>
+                    </span>
+
+                    <span class="navigation-text">
+                        Users
+                    </span>
+
+                </button>
+
+
+
+                <button class="navigation-button" data-section="settings" onclick="showSection('settings', this)">
+
+                    <span class="navigation-icon">
+                        <i class="fa-solid fa-gear"></i>
+                    </span>
+
+                    <span class="navigation-text">
+                        Settings
+                    </span>
+
+                </button>
+
+
+            </nav>
+
+
+
+            <!-- LOGOUT -->
+
+            <div class="logout-container">
+
+                <button class="logout-button" onclick="logout()">
+
+                    <span class="navigation-icon">
+                        <i class="fa-solid fa-right-from-bracket"></i>
+                    </span>
+
+                    <span class="logout-text">
+                        Logout
+                    </span>
+
+                </button>
+
+            </div>
+
+
+        </aside>
+
+
+
+        <!-- =====================================================
+         MAIN CONTENT
+    ====================================================== -->
+
+        <main class="main-content">
+
+
+            <!-- TOP BAR -->
+
+            <header class="topbar">
+
+                <div class="search-container">
+
+                    <i class="fa-solid fa-magnifying-glass search-icon"></i>
+
+                    <input type="text" class="search-input" id="reportSearch"
+                        placeholder="Search report by ID or name..." onkeydown="if(event.key==='Enter') searchReport()">
+
+                    <button type="button" class="search-button" onclick="searchReport()">
+
+                        Search
+
+                    </button>
+
+                </div>
+
+                <div class="topbar-right">
+                    <div class="topbar-user">
+                        <i class="fa-solid fa-bell topbar-bell"></i>
+                        <span id="topbarUsername">–</span>
+                    </div>
+                </div>
+
+
+            </header>
+
+
+
+            <!-- =================================================
+             CONTENT
+        ================================================== -->
+
+            <div class="content-area">
+
+
+
+                <!-- =============================================
+                 DASHBOARD
+            ============================================== -->
+
+                <section class="content-section active" id="dashboard">
+
+
+                    <div class="page-header">
+
+                        <div>
+                            <h1>Dashboard</h1>
+                            <p>Overview of your sample report platform.</p>
+                        </div>
+
+                        <div class="page-header-actions">
+                            <button class="btn-primary"
+                                onclick="showSection('create-sample', document.querySelector('[data-section=create-sample]'))">
+                                <i class="fa-solid fa-plus"></i> New Report
+                            </button>
+                        </div>
+
+                    </div>
+
+
+
+                    <div class="dashboard-cards">
+
+
+                        <div class="dashboard-card">
+
+                            <div class="card-icon card-icon-blue">
+                                <i class="fa-solid fa-file-lines"></i>
+                            </div>
+
+                            <div class="card-content">
+                                <div class="card-label">Total Samples</div>
+                                <div class="card-number" id="statTotalSamples">–</div>
+                            </div>
+
+                        </div>
+
+
+
+                        <div class="dashboard-card">
+
+                            <div class="card-icon card-icon-green">
+                                <i class="fa-solid fa-circle-plus"></i>
+                            </div>
+
+                            <div class="card-content">
+                                <div class="card-label">My Reports</div>
+                                <div class="card-number green-number" id="statMyReports">–</div>
+                            </div>
+
+                        </div>
+
+
+
+                        <div class="dashboard-card">
+
+                            <div class="card-icon card-icon-purple">
+                                <i class="fa-solid fa-rotate"></i>
+                            </div>
+
+                            <div class="card-content">
+                                <div class="card-label">Reports Updated</div>
+                                <div class="card-number" id="statUpdated">–</div>
+                            </div>
+
+                        </div>
+
+
+
+                        <div class="dashboard-card admin-only">
+
+                            <div class="card-icon card-icon-orange">
+                                <i class="fa-solid fa-users"></i>
+                            </div>
+
+                            <div class="card-content">
+                                <div class="card-label">Total Users</div>
+                                <div class="card-number" id="statUsers">5</div>
+                            </div>
+
+                        </div>
+
+
+                    </div>
+
+
+
+                    <div class="content-card">
+
+                        <div class="content-card-header">
+                            <div>
+                                <h2>Recent Samples</h2>
+                                <p class="content-card-description">Recently created sample reports.</p>
+                            </div>
+                        </div>
+
+
+                        <div class="table-container">
+
+                            <table>
+
+                                <thead>
+
+                                    <tr>
+                                        <th>Report ID</th>
+                                        <th>Report Name</th>
+                                        <th>Created</th>
+                                        <th>Action</th>
+                                    </tr>
+
+                                </thead>
+
+
+                                <tbody id="dashboardRecentReports">
+
+                                    <tr>
+                                        <td colspan="4" class="loading-cell">
+                                            <i class="fa-solid fa-spinner fa-spin"></i> Loading...
+                                        </td>
+                                    </tr>
+
+                                </tbody>
+
+                            </table>
+
+                        </div>
+
+                    </div>
+
+
+                </section>
+
+
+
+                <!-- =============================================
+                 CREATE SAMPLE
+            ============================================== -->
+
+
+                <!-- =====================================================
+                 CREATE SAMPLE REPORT SECTION
+            ====================================================== -->
+
+                <section class="content-section" id="create-sample">
+
+
+                    <!-- PAGE HEADER -->
+
+                    <div class="page-header">
+
+                        <div>
+                            <h1>Create Sample Report</h1>
+                            <p>Enter report information, market segments and companies.</p>
+                        </div>
+
+                    </div>
+
+
+
+                    <!-- =====================================================
+                     CREATE REPORT FORM
+                ====================================================== -->
+
+                    <form id="createReportForm">
+
+
+                        <!-- =================================================
+                         01. REPORT INFORMATION
+                    ================================================== -->
+
+                        <div class="content-card report-form-card">
+
+
+                            <!-- SECTION HEADER -->
+
+                            <div class="form-section-header">
+
+                                <div>
+
+                                    <h2><i class="fa-solid fa-circle-info"></i> Report Information</h2>
+
+                                </div>
+
+                            </div>
+
+
+
+                            <!-- FORM GRID -->
+
+                            <div class="form-grid">
+
+
+                                <!-- KEY ID -->
+
+                                <div class="form-group">
+
+                                    <label for="keyId">
+                                        Key ID <span class="required-star">*</span>
+                                    </label>
+
+                                    <input type="text" id="keyId" class="form-control" placeholder="e.g. SI-AI-2025-001"
+                                        required>
+
+                                </div>
+
+
+
+                                <!-- KEY NAME -->
+
+                                <div class="form-group">
+
+                                    <label for="keyName">
+                                        Report Name <span class="required-star">*</span>
+                                    </label>
+
+                                    <input type="text" id="keyName" class="form-control" placeholder="Enter Report Name"
+                                        required>
+
+                                </div>
+
+
+
+                                <!-- SCOPE -->
+
+                                <div class="form-group">
+
+                                    <label for="scope">
+                                        Scope <span class="required-star">*</span>
+                                    </label>
+
+                                    <select id="scope" class="form-control" required>
+
+                                        <option value="">
+                                            Select Scope
+                                        </option>
+
+                                        <option value="Global">
+                                            Global
+                                        </option>
+
+                                        <option value="Regional">
+                                            Regional
+                                        </option>
+
+                                        <option value="Country">
+                                            Country
+                                        </option>
+
+                                    </select>
+
+                                </div>
+
+
+
+                                <!-- SCOPE NAME -->
+
+                                <div class="form-group">
+
+                                    <label for="scopeName">
+                                        Scope Name
+                                    </label>
+
+                                    <input type="text" id="scopeName" class="form-control"
+                                        placeholder="e.g. North America">
+
+                                </div>
+
+
+
+                                <!-- VALUE / VOLUME -->
+
+                                <div class="form-group">
+
+                                    <label for="valueVolume">
+                                        Value / Volume
+                                    </label>
+
+                                    <select id="valueVolume" class="form-control">
+
+                                        <option value="Value">
+                                            Value
+                                        </option>
+
+                                        <option value="Volume">
+                                            Volume
+                                        </option>
+
+                                    </select>
+
+                                </div>
+
+
+
+                                <!-- UNIT -->
+
+                                <div class="form-group">
+
+                                    <label for="unit">
+                                        Unit
+                                    </label>
+
+                                    <input type="text" id="unit" class="form-control" placeholder="e.g. USD Billion">
+
+                                </div>
+
+
+
+                                <!-- LANGUAGE -->
+
+                                <div class="form-group">
+
+                                    <label for="language">
+                                        Language
+                                    </label>
+
+                                    <select id="language" class="form-control">
+
+                                        <option value="English">English</option>
+                                        <option value="Japanese">Japanese</option>
+                                        <option value="Korean">Korean</option>
+                                        <option value="French">French</option>
+                                        <option value="Italian">Italian</option>
+                                        <option value="Chinese">Chinese</option>
+                                        <option value="Vietnamese">Vietnamese</option>
+                                        <option value="Tagalog">Tagalog</option>
+                                        <option value="Malay">Malay</option>
+                                        <option value="Arabic">Arabic</option>
+                                        <option value="Spanish">Spanish</option>
+                                        <option value="Turkish">Turkish</option>
+                                        <option value="Russian">Russian</option>
+                                        <option value="Portuguese">Portuguese</option>
+
+                                    </select>
+
+                                </div>
+
+
+
+                                <!-- HISTORIC YEAR -->
+
+                                <div class="form-group">
+
+                                    <label for="historicYear">
+                                        Historic Year
+                                    </label>
+
+                                    <input type="number" id="historicYear" class="form-control" placeholder="e.g. 2019"
+                                        min="1990" max="2100">
+
+                                </div>
+
+
+
+                                <!-- BASE YEAR -->
+
+                                <div class="form-group">
+
+                                    <label for="baseYear">
+                                        Base Year
+                                    </label>
+
+                                    <input type="number" id="baseYear" class="form-control" placeholder="e.g. 2024"
+                                        min="1990" max="2100">
+
+                                </div>
+
+
+
+                                <!-- FORECAST YEAR -->
+
+                                <div class="form-group">
+
+                                    <label for="forecastYear">
+                                        Forecast Year
+                                    </label>
+
+                                    <input type="number" id="forecastYear" class="form-control" placeholder="e.g. 2033"
+                                        min="1990" max="2100">
+
+                                </div>
+
+
+
+                                <!-- MARKET VALUE BASE YEAR (NEW) -->
+
+                                <div class="form-group">
+
+                                    <label for="marketValueBaseYear">
+                                        Market Value — Base Year
+                                        <span class="field-hint">(Optional)</span>
+                                    </label>
+
+                                    <input type="number" id="marketValueBaseYear" class="form-control"
+                                        placeholder="e.g. 12.5" step="0.01">
+
+                                </div>
+
+
+
+                                <!-- MARKET VALUE FORECAST YEAR (NEW) -->
+
+                                <div class="form-group">
+
+                                    <label for="marketValueForecastYear">
+                                        Market Value — Forecast Year
+                                        <span class="field-hint">(Optional)</span>
+                                    </label>
+
+                                    <input type="number" id="marketValueForecastYear" class="form-control"
+                                        placeholder="e.g. 48.7" step="0.01">
+
+                                </div>
+
+
+                                <!-- CATEGORY (hidden / auto-set) -->
+                                <input type="hidden" id="category" value="General">
+
+
+                            </div>
+
+
+                        </div>
+
+
+
+                        <!-- =================================================
+                         02. MARKET SEGMENTS
+                    ================================================== -->
+
+                        <div class="content-card report-form-card">
+
+                            <div class="form-section-header">
+
+                                <div>
+                                    <h2><i class="fa-solid fa-sitemap"></i> Market Segments</h2>
+                                </div>
+
+                            </div>
+
+
+                            <!-- SEGMENTS WILL BE GENERATED HERE -->
+
+                            <div id="segmentsContainer" class="segments-container">
+                            </div>
+
+
+                            <button type="button" class="add-root-segment-button" onclick="addRootSegment()">
+
+                                <i class="fa-solid fa-plus"></i> Add Segment
+
+                            </button>
+
+                        </div>
+
+
+                        <!-- =================================================
+                         03. COMPANIES
+                    ================================================== -->
+
+                        <div class="content-card report-form-card">
+
+                            <div class="form-section-header">
+
+                                <div class="mb-1">
+
+                                    <h2><i class="fa-solid fa-building"></i> Companies</h2>
+
+                                    <p>
+                                        Add companies associated with this report.
+                                    </p>
+
+                                </div>
+
+                            </div>
+
+
+                            <!-- COMPANIES WILL BE GENERATED HERE -->
+
+                            <div id="companiesContainer" class="companies-container">
+                            </div>
+
+
+                            <button type="button" class="add-root-segment-button" onclick="addCompany()">
+
+                                <i class="fa-solid fa-plus"></i> Add Company
+
+                            </button>
+
+                        </div>
+
+                        <!-- =================================================
+                         SUBMIT SECTION
+                    ================================================== -->
+
+                        <div class="form-submit-container">
+
+
+                            <!-- RESET -->
+
+                            <button type="button" class="btn-secondary" onclick="resetReportForm()">
+
+                                <i class="fa-solid fa-rotate-left"></i> Reset Form
+
+                            </button>
+
+
+
+                            <!-- SUBMIT -->
+
+                            <button type="submit" class="btn-primary btn-large">
+
+                                <i class="fa-solid fa-paper-plane"></i> Create Sample Report
+
+                            </button>
+
+
+                        </div>
+
+
+                    </form>
+
+
+                </section>
+
+
+
+                <!-- =============================================
+                 EDIT SAMPLE
+            ============================================== -->
+
+
+                <section class="content-section" id="edit-sample">
+
+
+                    <!-- ========================================== -->
+                    <!-- PAGE HEADER                                -->
+                    <!-- ========================================== -->
+
+                    <div class="page-header">
+
+                        <div>
+                            <h1>Edit / Update Sample</h1>
+                            <p>Search and update existing sample reports.</p>
+                        </div>
+
+                    </div>
+
+
+                    <!-- ========================================== -->
+                    <!-- REPORTS LIST CONTAINER                     -->
+                    <!-- ========================================== -->
+
+                    <div class="content-card" id="reportsListContainer">
+
+
+                        <div class="content-card-header">
+                            <div>
+                                <h2>Sample Reports</h2>
+                                <p class="content-card-description">Manage and update existing samples.</p>
+                            </div>
+                            <button class="btn-primary btn-sm" onclick="loadMyReports()">
+                                <i class="fa-solid fa-arrows-rotate"></i> Refresh
+                            </button>
+                        </div>
+
+
+                        <!-- REPORTS TABLE -->
+
+                        <div class="table-container">
+
+                            <table>
+
+
+                                <!-- TABLE HEADER -->
+
+                                <thead>
+
+                                    <tr>
+
+                                        <th>Report ID</th>
+
+                                        <th>Report Name</th>
+
+                                        <th>Created</th>
+
+                                        <th>Actions</th>
+
+                                    </tr>
+
+                                </thead>
+
+
+                                <!-- REPORTS LOADED BY JAVASCRIPT -->
+
+                                <tbody id="reportsTableBody">
+
+                                    <tr>
+
+                                        <td colspan="4" class="loading-cell">
+                                            <i class="fa-solid fa-spinner fa-spin"></i> Loading reports...
+                                        </td>
+
+                                    </tr>
+
+                                </tbody>
+
+
+                            </table>
+
+                        </div>
+
+
+                    </div>
+
+
+                    <!-- ========================================== -->
+                    <!-- EDIT REPORT CONTAINER                      -->
+                    <!-- ========================================== -->
+
+                    <div class="edit-report-wrapper" id="editReportContainer" style="display: none;">
+
+
+                        <!-- EDIT HEADER -->
+
+                        <div class="edit-report-header-bar">
+
+                            <div>
+                                <h2>
+                                    <i class="fa-solid fa-pen-to-square"></i>
+                                    Edit Sample Report
+                                </h2>
+                                <p class="content-card-description">
+                                    Update the selected sample report information.
+                                </p>
+                            </div>
+
+
+                            <!-- BACK BUTTON -->
+
+                            <button type="button" class="btn-secondary" onclick="closeEditReport()">
+
+                                <i class="fa-solid fa-arrow-left"></i> Back to Reports
+
+                            </button>
+
+
+                        </div>
+
+
+                        <!-- ====================================== -->
+                        <!-- LOADING MESSAGE                        -->
+                        <!-- ====================================== -->
+
+                        <div id="editReportLoading" class="loading-message" style="display: none;">
+
+                            <i class="fa-solid fa-spinner fa-spin fa-2x"></i>
+                            <p>Loading report...</p>
+
+                        </div>
+
+
+                        <!-- ====================================== -->
+                        <!-- EDIT REPORT CONTENT (Redesigned)       -->
+                        <!-- ====================================== -->
+
+                        <div id="editReportContent" class="edit-content-layout-redesigned"
+                            style="display: none; flex-direction: column; gap: 24px; width: 100%;">
+
+                            <!-- 00. OVERVIEW BANNER CARD -->
+                            <div class="content-card edit-overview-card">
+                                <div class="overview-meta-grid">
+                                    <div class="meta-item">
+                                        <span class="meta-label">Report ID</span>
+                                        <span class="meta-value" id="infoPanelReportId">–</span>
+                                    </div>
+                                    <div class="meta-item">
+                                        <span class="meta-label">Key ID</span>
+                                        <span class="meta-value" id="infoPanelKeyId">–</span>
+                                    </div>
+                                    <div class="meta-item">
+                                        <span class="meta-label">Created By</span>
+                                        <span class="meta-value" id="infoPanelCreatedBy">–</span>
+                                    </div>
+                                    <div class="meta-item">
+                                        <span class="meta-label">Created At</span>
+                                        <span class="meta-value" id="infoPanelCreatedAt">–</span>
+                                    </div>
+                                    <div class="meta-item">
+                                        <span class="meta-label">Category</span>
+                                        <span class="meta-value info-badge" id="infoPanelCategory">–</span>
+                                    </div>
+                                </div>
+                                <div class="overview-actions">
+                                    <div class="download-panel-title">
+                                        <i class="fa-solid fa-download"></i> Download Report
+                                    </div>
+                                    <div class="download-buttons-horizontal">
+                                        <button type="button" class="download-btn download-btn-word"
+                                            id="downloadWordBtn" onclick="downloadWordReportCurrent()"
+                                            title="Download Word (.docx)">
+                                            <i class="fa-solid fa-file-word"></i>
+                                            <span>Word</span>
+                                        </button>
+
+                                        <button type="button" class="download-btn download-btn-ppt" id="downloadPptBtn"
+                                            onclick="downloadPptReportCurrent()" title="Download PowerPoint (.pptx)">
+                                            <i class="fa-solid fa-file-powerpoint"></i>
+                                            <span>PPT</span>
+                                        </button>
+
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 01. REPORT INFORMATION -->
+                            <div class="content-card report-form-card">
+                                <div class="form-section-header">
+                                    <div>
+                                        <h2><i class="fa-solid fa-circle-info"></i> Report Information</h2>
+                                    </div>
+                                </div>
+
+                                <!-- STORE DATABASE REPORT ID -->
+                                <input type="hidden" id="editingReportId">
+
+                                <div class="form-grid">
+                                    <div class="form-group">
+                                        <label for="editKeyId">Key ID <span class="required-star">*</span></label>
+                                        <input type="text" id="editKeyId" class="form-control"
+                                            placeholder="e.g. SI-AI-2025-001" required>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="editKeyName">Report Name <span
+                                                class="required-star">*</span></label>
+                                        <input type="text" id="editKeyName" class="form-control"
+                                            placeholder="Enter Report Name" required>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="editScope">Scope <span class="required-star">*</span></label>
+                                        <select id="editScope" class="form-control" required>
+                                            <option value="">Select Scope</option>
+                                            <option value="Global">Global</option>
+                                            <option value="Regional">Regional</option>
+                                            <option value="Country">Country</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="editScopeName">Scope Name</label>
+                                        <input type="text" id="editScopeName" class="form-control"
+                                            placeholder="e.g. North America">
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="editValueVolume">Value / Volume</label>
+                                        <select id="editValueVolume" class="form-control">
+                                            <option value="Value">Value</option>
+                                            <option value="Volume">Volume</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="editUnit">Unit</label>
+                                        <input type="text" id="editUnit" class="form-control"
+                                            placeholder="e.g. USD Billion">
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="editLanguage">Language</label>
+                                        <select id="editLanguage" class="form-control">
+                                            <option value="English">English</option>
+                                            <option value="Japanese">Japanese</option>
+                                            <option value="Korean">Korean</option>
+                                            <option value="French">French</option>
+                                            <option value="Italian">Italian</option>
+                                            <option value="Chinese">Chinese</option>
+                                            <option value="Vietnamese">Vietnamese</option>
+                                            <option value="Tagalog">Tagalog</option>
+                                            <option value="Malay">Malay</option>
+                                            <option value="Arabic">Arabic</option>
+                                            <option value="Spanish">Spanish</option>
+                                            <option value="Turkish">Turkish</option>
+                                            <option value="Russian">Russian</option>
+                                            <option value="Portuguese">Portuguese</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="editHistoricYear">Historic Year</label>
+                                        <input type="number" id="editHistoricYear" class="form-control"
+                                            placeholder="e.g. 2019" min="1990" max="2100">
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="editBaseYear">Base Year</label>
+                                        <input type="number" id="editBaseYear" class="form-control"
+                                            placeholder="e.g. 2024" min="1990" max="2100">
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="editForecastYear">Forecast Year</label>
+                                        <input type="number" id="editForecastYear" class="form-control"
+                                            placeholder="e.g. 2033" min="1990" max="2100">
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="editMarketValueBaseYear">Market Value — Base Year <span
+                                                class="field-hint">(Optional)</span></label>
+                                        <input type="number" id="editMarketValueBaseYear" class="form-control"
+                                            placeholder="e.g. 12.5" step="0.01">
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="editMarketValueForecastYear">Market Value — Forecast Year <span
+                                                class="field-hint">(Optional)</span></label>
+                                        <input type="number" id="editMarketValueForecastYear" class="form-control"
+                                            placeholder="e.g. 48.7" step="0.01">
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="editCategory">Category <span
+                                                class="field-hint">(Optional)</span></label>
+                                        <input type="text" id="editCategory" class="form-control"
+                                            placeholder="e.g. Healthcare, Technology">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 02. MARKET SEGMENTS -->
+                            <div class="content-card report-form-card">
+                                <div class="form-section-header">
+                                    <div>
+                                        <h2><i class="fa-solid fa-sitemap"></i> Market Segments</h2>
+                                    </div>
+                                </div>
+
+                                <div id="editSegmentsContainer" class="segments-container">
+                                    <!-- Generated by JS -->
+                                </div>
+
+                                <button type="button" class="add-root-segment-button" onclick="addEditRootSegment()">
+                                    <i class="fa-solid fa-plus"></i> Add Segment
+                                </button>
+                            </div>
+
+                            <!-- 03. COMPANIES -->
+                            <div class="content-card report-form-card">
+                                <div class="form-section-header">
+                                    <div>
+                                        <h2><i class="fa-solid fa-building"></i> Companies</h2>
+                                        <p>Add companies associated with this report.</p>
+                                    </div>
+                                </div>
+
+                                <div id="editCompaniesContainer" class="companies-container">
+                                    <!-- Generated by JS -->
+                                </div>
+
+                                <button type="button" class="add-root-segment-button" onclick="addEditCompany()">
+                                    <i class="fa-solid fa-plus"></i> Add Company
+                                </button>
+                            </div>
+
+                            <!-- SUBMIT SECTION -->
+                            <div class="form-submit-container">
+                                <button type="button" class="btn-secondary" onclick="closeEditReport()">
+                                    <i class="fa-solid fa-xmark"></i> Cancel
+                                </button>
+                                <button type="button" class="btn-primary btn-large" id="updateReportButton"
+                                    onclick="updateSampleReport()">
+                                    <i class="fa-solid fa-floppy-disk"></i> Update Sample Report
+                                </button>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                </section>
+
+
+                <section class="content-section" id="search-results">
+
+
+                    <div class="page-header">
+
+                        <div>
+                            <h1>Search Results</h1>
+                            <p>View reports matching your search.</p>
+                        </div>
+
+                        <button class="btn-secondary"
+                            onclick="showSection('dashboard', document.querySelector('[data-section=dashboard]'))">
+                            <i class="fa-solid fa-arrow-left"></i> Back
+                        </button>
+
+                    </div>
+
+
+                    <div class="content-card" id="searchResultsContainer">
+
+
+                        <h2>Sample Reports</h2>
+
+
+                        <p class="content-card-description" id="searchResultsDescription">
+
+                            Search results will appear here.
+
+                        </p>
+
+
+                        <div class="table-container">
+
+                            <table>
+
+                                <thead>
+
+                                    <tr>
+
+                                        <th>Report ID</th>
+
+                                        <th>Report Name</th>
+
+                                        <th>Created</th>
+
+                                        <th>Actions</th>
+
+                                    </tr>
+
+                                </thead>
+
+
+                                <tbody id="searchResultsTableBody">
+
+                                    <tr>
+
+                                        <td colspan="4">
+
+                                            No search performed.
+
+                                        </td>
+
+                                    </tr>
+
+                                </tbody>
+
+                            </table>
+
+                        </div>
+
+
+                    </div>
+
+
+                </section>
+
+
+
+
+                <!-- =============================================
+                  USERS
+             ============================================== -->
+
+                <section class="content-section admin-only" id="users">
+
+
+                    <div class="page-header">
+
+                        <div>
+                            <h1>User Management</h1>
+                            <p>Create, update and manage application users.</p>
+                        </div>
+
+                        <button class="btn-primary" onclick="openCreateUserModal()">
+                            <i class="fa-solid fa-plus-circle"></i> Create User
+                        </button>
+
+                    </div>
+
+
+                    <!-- User Creator / Editor Form (Inline card) -->
+                    <div class="content-card" id="userFormContainer" style="display: none; margin-bottom: 24px;">
+                        <h2 id="userFormTitle">Create New User</h2>
+                        <form id="userAdminForm" onsubmit="saveUser(event)">
+                            <input type="hidden" id="adminUserId">
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label for="adminUsername">Username / Email <span
+                                            class="required-star">*</span></label>
+                                    <input type="email" id="adminUsername" class="form-control"
+                                        placeholder="e.g. user@spherical.com" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="adminPassword">Password <span id="pwdRequiredStar"
+                                            class="required-star">*</span></label>
+                                    <input type="password" id="adminPassword" class="form-control"
+                                        placeholder="Enter password">
+                                    <small class="field-hint" id="pwdHint" style="display: none;">Leave blank to keep
+                                        current password.</small>
+                                </div>
+                                <div class="form-group">
+                                    <label for="adminRole">Role <span class="required-star">*</span></label>
+                                    <select id="adminRole" class="form-control" required>
+                                        <option value="USER">User</option>
+                                        <option value="ADMIN">Admin</option>
+                                        <option value="SALES_TEAM">Sales Team</option>
+                                        <option value="RESEARCH_TEAM">Research Team</option>
+                                        <option value="DIGITAL_MARKETING">Digital Marketing</option>
+                                    </select>
+                                </div>
+                                <div class="form-group" id="adminUserStatusGroup" style="display: none;">
+                                    <label for="adminUserEnabled">Status</label>
+                                    <select id="adminUserEnabled" class="form-control">
+                                        <option value="true">Active</option>
+                                        <option value="false">Inactive</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-submit-container" style="margin-top: 20px; padding-top: 15px;">
+                                <button type="button" class="btn-secondary" onclick="closeUserForm()">Cancel</button>
+                                <button type="submit" class="btn-primary" id="saveUserBtn">Save User</button>
+                            </div>
+                        </form>
+                    </div>
+
+
+                    <div class="content-card">
+
+
+                        <h2>All Users</h2>
+
+                        <p class="content-card-description">
+                            View and manage registered users.
+                        </p>
+
+
+                        <div class="table-container">
+
+                            <table>
+
+                                <thead>
+
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Username / Email</th>
+                                        <th>Role</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+
+                                </thead>
+
+
+                                <tbody id="adminUsersTableBody">
+
+                                    <tr>
+                                        <td colspan="5" class="loading-cell">
+                                            <i class="fa-solid fa-spinner fa-spin"></i> Loading users...
+                                        </td>
+                                    </tr>
+
+                                </tbody>
+
+                            </table>
+
+                        </div>
+
+
+                    </div>
+
+
+                </section>
+
+
+
+                <!-- =============================================
+                 SETTINGS
+            ============================================== -->
+
+                <section class="content-section" id="settings">
+
+
+                    <div class="page-header">
+
+                        <div>
+                            <h1>Settings</h1>
+                            <p>Manage your account settings.</p>
+                        </div>
+
+                    </div>
+
+
+                    <div class="content-card">
+
+
+                        <h2>Account Information</h2>
+
+                        <p class="content-card-description">
+                            Your account details.
+                        </p>
+
+
+                        <div class="form-grid">
+
+
+                            <div class="form-group">
+
+                                <label>
+                                    Username / Email
+                                </label>
+
+                                <input type="text" class="form-control" id="settingsUsername" readonly>
+
+                            </div>
+
+
+
+                            <div class="form-group">
+
+                                <label>
+                                    Role
+                                </label>
+
+                                <input type="text" class="form-control" id="settingsRole" readonly>
+
+                            </div>
+
+
+                        </div>
+
+
+                    </div>
+
+
+                </section>
+
+
+            </div>
+
+
+        </main>
+
+
+    </div>
+
+
+
+
+    <!-- Bootstrap JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js">
+
+    </script>
+
+    <script th:src="@{/js/dashboard.js}"></script>
+</body>
+
+</html>
