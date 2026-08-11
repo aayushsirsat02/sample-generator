@@ -174,7 +174,7 @@ public class SampleReport {
         this.historicYear = historicYear;
     }
 
-    public Integer getBaseYear() {
+    public int getBaseYear() {
         return baseYear;
     }
 
@@ -182,7 +182,7 @@ public class SampleReport {
         this.baseYear = baseYear;
     }
 
-    public Integer getForecastYear() {
+    public int getForecastYear() {
         return forecastYear;
     }
 

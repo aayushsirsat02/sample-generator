@@ -1,0 +1,747 @@
+﻿Classfile /c:/Spherical_Insights/Projects/sample-2/sample-refactored/sample/target/classes/com/sample_generator/sample/pdf/outline/RegionalOutlineBuilder.class
+  Last modified 08-Aug-2026; size 7061 bytes
+  SHA-256 checksum 58607683fbc760b837477ac481aa7b8a4946a3aa9c3f6defdde37ff272b5ae39
+  Compiled from "RegionalOutlineBuilder.java"
+public final class com.sample_generator.sample.pdf.outline.RegionalOutlineBuilder
+  minor version: 0
+  major version: 61
+  flags: (0x0031) ACC_PUBLIC, ACC_FINAL, ACC_SUPER
+  this_class: #23                         // com/sample_generator/sample/pdf/outline/RegionalOutlineBuilder
+  super_class: #2                         // java/lang/Object
+  interfaces: 0, fields: 0, methods: 8, attributes: 3
+Constant pool:
+    #1 = Methodref          #2.#3         // java/lang/Object."<init>":()V
+    #2 = Class              #4            // java/lang/Object
+    #3 = NameAndType        #5:#6         // "<init>":()V
+    #4 = Utf8               java/lang/Object
+    #5 = Utf8               <init>
+    #6 = Utf8               ()V
+    #7 = Class              #8            // java/util/ArrayList
+    #8 = Utf8               java/util/ArrayList
+    #9 = Methodref          #7.#3         // java/util/ArrayList."<init>":()V
+   #10 = Methodref          #11.#12       // com/sample_generator/sample/Entity/SampleReport.getKeyName:()Ljava/lang/String;
+   #11 = Class              #13           // com/sample_generator/sample/Entity/SampleReport
+   #12 = NameAndType        #14:#15       // getKeyName:()Ljava/lang/String;
+   #13 = Utf8               com/sample_generator/sample/Entity/SampleReport
+   #14 = Utf8               getKeyName
+   #15 = Utf8               ()Ljava/lang/String;
+   #16 = InvokeDynamic      #0:#17        // #0:makeConcatWithConstants:(I)Ljava/lang/String;
+   #17 = NameAndType        #18:#19       // makeConcatWithConstants:(I)Ljava/lang/String;
+   #18 = Utf8               makeConcatWithConstants
+   #19 = Utf8               (I)Ljava/lang/String;
+   #20 = String             #21           // Overview
+   #21 = Utf8               Overview
+   #22 = Methodref          #23.#24       // com/sample_generator/sample/pdf/outline/RegionalOutlineBuilder.entry:(Ljava/lang/String;Ljava/lang/String;ILjava/lang/String;)Lcom/sample_generator/sample/pdf/outline/TocOutlineEntry;
+   #23 = Class              #25           // com/sample_generator/sample/pdf/outline/RegionalOutlineBuilder
+   #24 = NameAndType        #26:#27       // entry:(Ljava/lang/String;Ljava/lang/String;ILjava/lang/String;)Lcom/sample_generator/sample/pdf/outline/TocOutlineEntry;
+   #25 = Utf8               com/sample_generator/sample/pdf/outline/RegionalOutlineBuilder
+   #26 = Utf8               entry
+   #27 = Utf8               (Ljava/lang/String;Ljava/lang/String;ILjava/lang/String;)Lcom/sample_generator/sample/pdf/outline/TocOutlineEntry;
+   #28 = InterfaceMethodref #29.#30       // java/util/List.add:(Ljava/lang/Object;)Z
+   #29 = Class              #31           // java/util/List
+   #30 = NameAndType        #32:#33       // add:(Ljava/lang/Object;)Z
+   #31 = Utf8               java/util/List
+   #32 = Utf8               add
+   #33 = Utf8               (Ljava/lang/Object;)Z
+   #34 = InvokeDynamic      #1:#17        // #1:makeConcatWithConstants:(I)Ljava/lang/String;
+   #35 = InvokeDynamic      #2:#36        // #2:makeConcatWithConstants:(Ljava/lang/String;)Ljava/lang/String;
+   #36 = NameAndType        #18:#37       // makeConcatWithConstants:(Ljava/lang/String;)Ljava/lang/String;
+   #37 = Utf8               (Ljava/lang/String;)Ljava/lang/String;
+   #38 = InvokeDynamic      #3:#17        // #3:makeConcatWithConstants:(I)Ljava/lang/String;
+   #39 = InvokeDynamic      #4:#36        // #4:makeConcatWithConstants:(Ljava/lang/String;)Ljava/lang/String;
+   #40 = Methodref          #23.#41       // com/sample_generator/sample/pdf/outline/RegionalOutlineBuilder.resolveRegions:(Ljava/util/List;)Ljava/util/List;
+   #41 = NameAndType        #42:#43       // resolveRegions:(Ljava/util/List;)Ljava/util/List;
+   #42 = Utf8               resolveRegions
+   #43 = Utf8               (Ljava/util/List;)Ljava/util/List;
+   #44 = Methodref          #23.#45       // com/sample_generator/sample/pdf/outline/RegionalOutlineBuilder.segmentDimensions:(Ljava/util/List;)Ljava/util/List;
+   #45 = NameAndType        #46:#43       // segmentDimensions:(Ljava/util/List;)Ljava/util/List;
+   #46 = Utf8               segmentDimensions
+   #47 = InterfaceMethodref #29.#48       // java/util/List.iterator:()Ljava/util/Iterator;
+   #48 = NameAndType        #49:#50       // iterator:()Ljava/util/Iterator;
+   #49 = Utf8               iterator
+   #50 = Utf8               ()Ljava/util/Iterator;
+   #51 = InterfaceMethodref #52.#53       // java/util/Iterator.hasNext:()Z
+   #52 = Class              #54           // java/util/Iterator
+   #53 = NameAndType        #55:#56       // hasNext:()Z
+   #54 = Utf8               java/util/Iterator
+   #55 = Utf8               hasNext
+   #56 = Utf8               ()Z
+   #57 = InterfaceMethodref #52.#58       // java/util/Iterator.next:()Ljava/lang/Object;
+   #58 = NameAndType        #59:#60       // next:()Ljava/lang/Object;
+   #59 = Utf8               next
+   #60 = Utf8               ()Ljava/lang/Object;
+   #61 = Class              #62           // com/sample_generator/sample/Entity/MarketSegment
+   #62 = Utf8               com/sample_generator/sample/Entity/MarketSegment
+   #63 = Methodref          #61.#64       // com/sample_generator/sample/Entity/MarketSegment.getSegmentName:()Ljava/lang/String;
+   #64 = NameAndType        #65:#15       // getSegmentName:()Ljava/lang/String;
+   #65 = Utf8               getSegmentName
+   #66 = Methodref          #67.#68       // java/lang/String.isBlank:()Z
+   #67 = Class              #69           // java/lang/String
+   #68 = NameAndType        #70:#56       // isBlank:()Z
+   #69 = Utf8               java/lang/String
+   #70 = Utf8               isBlank
+   #71 = InvokeDynamic      #5:#72        // #5:makeConcatWithConstants:(II)Ljava/lang/String;
+   #72 = NameAndType        #18:#73       // makeConcatWithConstants:(II)Ljava/lang/String;
+   #73 = Utf8               (II)Ljava/lang/String;
+   #74 = Methodref          #23.#75       // com/sample_generator/sample/pdf/outline/RegionalOutlineBuilder.yearSpan:(Lcom/sample_generator/sample/Entity/SampleReport;)Ljava/lang/String;
+   #75 = NameAndType        #76:#77       // yearSpan:(Lcom/sample_generator/sample/Entity/SampleReport;)Ljava/lang/String;
+   #76 = Utf8               yearSpan
+   #77 = Utf8               (Lcom/sample_generator/sample/Entity/SampleReport;)Ljava/lang/String;
+   #78 = InvokeDynamic      #6:#79        // #6:makeConcatWithConstants:(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+   #79 = NameAndType        #18:#80       // makeConcatWithConstants:(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+   #80 = Utf8               (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+   #81 = InvokeDynamic      #0:#36        // #0:makeConcatWithConstants:(Ljava/lang/String;)Ljava/lang/String;
+   #82 = InvokeDynamic      #7:#36        // #7:makeConcatWithConstants:(Ljava/lang/String;)Ljava/lang/String;
+   #83 = InvokeDynamic      #8:#79        // #8:makeConcatWithConstants:(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+   #84 = InvokeDynamic      #5:#85        // #5:makeConcatWithConstants:(Ljava/lang/String;I)Ljava/lang/String;
+   #85 = NameAndType        #18:#86       // makeConcatWithConstants:(Ljava/lang/String;I)Ljava/lang/String;
+   #86 = Utf8               (Ljava/lang/String;I)Ljava/lang/String;
+   #87 = InvokeDynamic      #9:#88        // #9:makeConcatWithConstants:(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+   #88 = NameAndType        #18:#89       // makeConcatWithConstants:(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+   #89 = Utf8               (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+   #90 = InvokeDynamic      #10:#85       // #10:makeConcatWithConstants:(Ljava/lang/String;I)Ljava/lang/String;
+   #91 = InvokeDynamic      #11:#88       // #11:makeConcatWithConstants:(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+   #92 = Methodref          #61.#93       // com/sample_generator/sample/Entity/MarketSegment.getChildren:()Ljava/util/List;
+   #93 = NameAndType        #94:#95       // getChildren:()Ljava/util/List;
+   #94 = Utf8               getChildren
+   #95 = Utf8               ()Ljava/util/List;
+   #96 = Methodref          #23.#97       // com/sample_generator/sample/pdf/outline/RegionalOutlineBuilder.appendGeoTocEntries:(Ljava/util/List;Ljava/util/List;Ljava/lang/String;ILjava/lang/String;Lcom/sample_generator/sample/Entity/SampleReport;I)V
+   #97 = NameAndType        #98:#99       // appendGeoTocEntries:(Ljava/util/List;Ljava/util/List;Ljava/lang/String;ILjava/lang/String;Lcom/sample_generator/sample/Entity/SampleReport;I)V
+   #98 = Utf8               appendGeoTocEntries
+   #99 = Utf8               (Ljava/util/List;Ljava/util/List;Ljava/lang/String;ILjava/lang/String;Lcom/sample_generator/sample/Entity/SampleReport;I)V
+  #100 = InterfaceMethodref #29.#101      // java/util/List.isEmpty:()Z
+  #101 = NameAndType        #102:#56      // isEmpty:()Z
+  #102 = Utf8               isEmpty
+  #103 = Methodref          #23.#104      // com/sample_generator/sample/pdf/outline/RegionalOutlineBuilder.findRegionRoot:(Ljava/util/List;)Lcom/sample_generator/sample/Entity/MarketSegment;
+  #104 = NameAndType        #105:#106     // findRegionRoot:(Ljava/util/List;)Lcom/sample_generator/sample/Entity/MarketSegment;
+  #105 = Utf8               findRegionRoot
+  #106 = Utf8               (Ljava/util/List;)Lcom/sample_generator/sample/Entity/MarketSegment;
+  #107 = InterfaceMethodref #29.#108      // java/util/List.of:()Ljava/util/List;
+  #108 = NameAndType        #109:#95      // of:()Ljava/util/List;
+  #109 = Utf8               of
+  #110 = String             #111          // Region
+  #111 = Utf8               Region
+  #112 = Methodref          #67.#113      // java/lang/String.equalsIgnoreCase:(Ljava/lang/String;)Z
+  #113 = NameAndType        #114:#115     // equalsIgnoreCase:(Ljava/lang/String;)Z
+  #114 = Utf8               equalsIgnoreCase
+  #115 = Utf8               (Ljava/lang/String;)Z
+  #116 = Methodref          #117.#118     // com/sample_generator/sample/pdf/outline/ReportChapterLayout.isSegmentChapterRoot:(Lcom/sample_generator/sample/Entity/MarketSegment;)Z
+  #117 = Class              #119          // com/sample_generator/sample/pdf/outline/ReportChapterLayout
+  #118 = NameAndType        #120:#121     // isSegmentChapterRoot:(Lcom/sample_generator/sample/Entity/MarketSegment;)Z
+  #119 = Utf8               com/sample_generator/sample/pdf/outline/ReportChapterLayout
+  #120 = Utf8               isSegmentChapterRoot
+  #121 = Utf8               (Lcom/sample_generator/sample/Entity/MarketSegment;)Z
+  #122 = Methodref          #11.#123      // com/sample_generator/sample/Entity/SampleReport.getHistoricYear:()Ljava/lang/Integer;
+  #123 = NameAndType        #124:#125     // getHistoricYear:()Ljava/lang/Integer;
+  #124 = Utf8               getHistoricYear
+  #125 = Utf8               ()Ljava/lang/Integer;
+  #126 = Methodref          #127.#128     // java/lang/Integer.intValue:()I
+  #127 = Class              #129          // java/lang/Integer
+  #128 = NameAndType        #130:#131     // intValue:()I
+  #129 = Utf8               java/lang/Integer
+  #130 = Utf8               intValue
+  #131 = Utf8               ()I
+  #132 = Methodref          #11.#133      // com/sample_generator/sample/Entity/SampleReport.getBaseYear:()I
+  #133 = NameAndType        #134:#131     // getBaseYear:()I
+  #134 = Utf8               getBaseYear
+  #135 = Methodref          #11.#136      // com/sample_generator/sample/Entity/SampleReport.getForecastYear:()I
+  #136 = NameAndType        #137:#131     // getForecastYear:()I
+  #137 = Utf8               getForecastYear
+  #138 = InvokeDynamic      #12:#72       // #12:makeConcatWithConstants:(II)Ljava/lang/String;
+  #139 = Class              #140          // com/sample_generator/sample/pdf/outline/TocOutlineEntry
+  #140 = Utf8               com/sample_generator/sample/pdf/outline/TocOutlineEntry
+  #141 = InvokeDynamic      #13:#36       // #13:makeConcatWithConstants:(Ljava/lang/String;)Ljava/lang/String;
+  #142 = Methodref          #139.#143     // com/sample_generator/sample/pdf/outline/TocOutlineEntry."<init>":(Ljava/lang/String;Ljava/lang/String;ILjava/lang/String;)V
+  #143 = NameAndType        #5:#144       // "<init>":(Ljava/lang/String;Ljava/lang/String;ILjava/lang/String;)V
+  #144 = Utf8               (Ljava/lang/String;Ljava/lang/String;ILjava/lang/String;)V
+  #145 = Utf8               Code
+  #146 = Utf8               LineNumberTable
+  #147 = Utf8               LocalVariableTable
+  #148 = Utf8               this
+  #149 = Utf8               Lcom/sample_generator/sample/pdf/outline/RegionalOutlineBuilder;
+  #150 = Utf8               buildTocEntries
+  #151 = Utf8               (Lcom/sample_generator/sample/Entity/SampleReport;Ljava/util/List;I)Ljava/util/List;
+  #152 = Utf8               dim
+  #153 = Utf8               Ljava/lang/String;
+  #154 = Utf8               dimension
+  #155 = Utf8               Lcom/sample_generator/sample/Entity/MarketSegment;
+  #156 = Utf8               regionName
+  #157 = Utf8               regionPrefix
+  #158 = Utf8               valueTitle
+  #159 = Utf8               section
+  #160 = Utf8               I
+  #161 = Utf8               region
+  #162 = Utf8               report
+  #163 = Utf8               Lcom/sample_generator/sample/Entity/SampleReport;
+  #164 = Utf8               roots
+  #165 = Utf8               Ljava/util/List;
+  #166 = Utf8               chapter
+  #167 = Utf8               entries
+  #168 = Utf8               market
+  #169 = Utf8               regions
+  #170 = Utf8               regionIndex
+  #171 = Utf8               LocalVariableTypeTable
+  #172 = Utf8               Ljava/util/List<Lcom/sample_generator/sample/Entity/MarketSegment;>;
+  #173 = Utf8               Ljava/util/List<Lcom/sample_generator/sample/pdf/outline/TocOutlineEntry;>;
+  #174 = Utf8               StackMapTable
+  #175 = Utf8               MethodParameters
+  #176 = Utf8               Signature
+  #177 = Utf8               (Lcom/sample_generator/sample/Entity/SampleReport;Ljava/util/List<Lcom/sample_generator/sample/Entity/MarketSegment;>;I)Ljava/util/List<Lcom/sample_generator/sample/pdf/outline/TocOutlineEntry;>;
+  #178 = Utf8               prefix
+  #179 = Utf8               children
+  #180 = Utf8               node
+  #181 = Utf8               nodes
+  #182 = Utf8               parentPrefix
+  #183 = Utf8               startIndex
+  #184 = Utf8               titleLevel
+  #185 = Utf8               index
+  #186 = Utf8               (Ljava/util/List<Lcom/sample_generator/sample/pdf/outline/TocOutlineEntry;>;Ljava/util/List<Lcom/sample_generator/sample/Entity/MarketSegment;>;Ljava/lang/String;ILjava/lang/String;Lcom/sample_generator/sample/Entity/SampleReport;I)V
+  #187 = Utf8               regionRoot
+  #188 = Utf8               (Ljava/util/List<Lcom/sample_generator/sample/Entity/MarketSegment;>;)Ljava/util/List<Lcom/sample_generator/sample/Entity/MarketSegment;>;
+  #189 = Utf8               root
+  #190 = Utf8               (Ljava/util/List<Lcom/sample_generator/sample/Entity/MarketSegment;>;)Lcom/sample_generator/sample/Entity/MarketSegment;
+  #191 = Utf8               dimensions
+  #192 = Utf8               historic
+  #193 = Utf8               number
+  #194 = Utf8               title
+  #195 = Utf8               level
+  #196 = Utf8               destSuffix
+  #197 = Utf8               SourceFile
+  #198 = Utf8               RegionalOutlineBuilder.java
+  #199 = Utf8               BootstrapMethods
+  #200 = MethodHandle       6:#201        // REF_invokeStatic java/lang/invoke/StringConcatFactory.makeConcatWithConstants:(Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/invoke/CallSite;
+  #201 = Methodref          #202.#203     // java/lang/invoke/StringConcatFactory.makeConcatWithConstants:(Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/invoke/CallSite;
+  #202 = Class              #204          // java/lang/invoke/StringConcatFactory
+  #203 = NameAndType        #18:#205      // makeConcatWithConstants:(Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/invoke/CallSite;
+  #204 = Utf8               java/lang/invoke/StringConcatFactory
+  #205 = Utf8               (Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/invoke/CallSite;
+  #206 = String             #207          // \u0001.1
+  #207 = Utf8               \u0001.1
+  #208 = String             #209          // \u0001.2
+  #209 = Utf8               \u0001.2
+  #210 = String             #211          // \u0001 Share, by Region
+  #211 = Utf8               \u0001 Share, by Region
+  #212 = String             #213          // \u0001.3
+  #213 = Utf8               \u0001.3
+  #214 = String             #215          // Global \u0001 Value, by Region
+  #215 = Utf8               Global \u0001 Value, by Region
+  #216 = String             #217          // \u0001.\u0001
+  #217 = Utf8               \u0001.\u0001
+  #218 = String             #219          // \u0001 \u0001, \u0001 Value (USD Million)
+  #219 = Utf8               \u0001 \u0001, \u0001 Value (USD Million)
+  #220 = String             #221          // \u0001.1.1
+  #221 = Utf8               \u0001.1.1
+  #222 = String             #223          // \u0001 \u0001, by Country, \u0001 Value (USD Million)
+  #223 = Utf8               \u0001 \u0001, by Country, \u0001 Value (USD Million)
+  #224 = String             #225          // \u0001 \u0001, by \u0001, \u0001
+  #225 = Utf8               \u0001 \u0001, by \u0001, \u0001
+  #226 = String             #227          // \u0001.\u0001.1
+  #227 = Utf8               \u0001.\u0001.1
+  #228 = String             #229          // \u0001 \u0001, by \u0001, \u0001 Value (USD Million)
+  #229 = Utf8               \u0001 \u0001, by \u0001, \u0001 Value (USD Million)
+  #230 = String             #231          // \u0001-\u0001
+  #231 = Utf8               \u0001-\u0001
+  #232 = String             #233          // toc.\u0001
+  #233 = Utf8               toc.\u0001
+  #234 = Utf8               InnerClasses
+  #235 = Class              #236          // java/lang/invoke/MethodHandles$Lookup
+  #236 = Utf8               java/lang/invoke/MethodHandles$Lookup
+  #237 = Class              #238          // java/lang/invoke/MethodHandles
+  #238 = Utf8               java/lang/invoke/MethodHandles
+  #239 = Utf8               Lookup
+{
+  static java.util.List<com.sample_generator.sample.pdf.outline.TocOutlineEntry> buildTocEntries(com.sample_generator.sample.Entity.SampleReport, java.util.List<com.sample_generator.sample.Entity.MarketSegment>, int);
+    descriptor: (Lcom/sample_generator/sample/Entity/SampleReport;Ljava/util/List;I)Ljava/util/List;
+    flags: (0x0008) ACC_STATIC
+    Code:
+      stack=7, locals=17, args_size=3
+         0: new           #7                  // class java/util/ArrayList
+         3: dup
+         4: invokespecial #9                  // Method java/util/ArrayList."<init>":()V
+         7: astore_3
+         8: aload_0
+         9: invokevirtual #10                 // Method com/sample_generator/sample/Entity/SampleReport.getKeyName:()Ljava/lang/String;
+        12: astore        4
+        14: aload_3
+        15: iload_2
+        16: invokedynamic #16,  0             // InvokeDynamic #0:makeConcatWithConstants:(I)Ljava/lang/String;
+        21: ldc           #20                 // String Overview
+        23: iconst_1
+        24: iload_2
+        25: invokedynamic #16,  0             // InvokeDynamic #0:makeConcatWithConstants:(I)Ljava/lang/String;
+        30: invokestatic  #22                 // Method entry:(Ljava/lang/String;Ljava/lang/String;ILjava/lang/String;)Lcom/sample_generator/sample/pdf/outline/TocOutlineEntry;
+        33: invokeinterface #28,  2           // InterfaceMethod java/util/List.add:(Ljava/lang/Object;)Z
+        38: pop
+        39: aload_3
+        40: iload_2
+        41: invokedynamic #34,  0             // InvokeDynamic #1:makeConcatWithConstants:(I)Ljava/lang/String;
+        46: aload         4
+        48: invokedynamic #35,  0             // InvokeDynamic #2:makeConcatWithConstants:(Ljava/lang/String;)Ljava/lang/String;
+        53: iconst_1
+        54: iload_2
+        55: invokedynamic #34,  0             // InvokeDynamic #1:makeConcatWithConstants:(I)Ljava/lang/String;
+        60: invokestatic  #22                 // Method entry:(Ljava/lang/String;Ljava/lang/String;ILjava/lang/String;)Lcom/sample_generator/sample/pdf/outline/TocOutlineEntry;
+        63: invokeinterface #28,  2           // InterfaceMethod java/util/List.add:(Ljava/lang/Object;)Z
+        68: pop
+        69: aload_3
+        70: iload_2
+        71: invokedynamic #38,  0             // InvokeDynamic #3:makeConcatWithConstants:(I)Ljava/lang/String;
+        76: aload         4
+        78: invokedynamic #39,  0             // InvokeDynamic #4:makeConcatWithConstants:(Ljava/lang/String;)Ljava/lang/String;
+        83: iconst_1
+        84: iload_2
+        85: invokedynamic #38,  0             // InvokeDynamic #3:makeConcatWithConstants:(I)Ljava/lang/String;
+        90: invokestatic  #22                 // Method entry:(Ljava/lang/String;Ljava/lang/String;ILjava/lang/String;)Lcom/sample_generator/sample/pdf/outline/TocOutlineEntry;
+        93: invokeinterface #28,  2           // InterfaceMethod java/util/List.add:(Ljava/lang/Object;)Z
+        98: pop
+        99: aload_1
+       100: invokestatic  #40                 // Method resolveRegions:(Ljava/util/List;)Ljava/util/List;
+       103: astore        5
+       105: aload_1
+       106: invokestatic  #44                 // Method segmentDimensions:(Ljava/util/List;)Ljava/util/List;
+       109: astore        6
+       111: iconst_4
+       112: istore        7
+       114: aload         5
+       116: invokeinterface #47,  1           // InterfaceMethod java/util/List.iterator:()Ljava/util/Iterator;
+       121: astore        8
+       123: aload         8
+       125: invokeinterface #51,  1           // InterfaceMethod java/util/Iterator.hasNext:()Z
+       130: ifeq          460
+       133: aload         8
+       135: invokeinterface #57,  1           // InterfaceMethod java/util/Iterator.next:()Ljava/lang/Object;
+       140: checkcast     #61                 // class com/sample_generator/sample/Entity/MarketSegment
+       143: astore        9
+       145: aload         9
+       147: ifnull        123
+       150: aload         9
+       152: invokevirtual #63                 // Method com/sample_generator/sample/Entity/MarketSegment.getSegmentName:()Ljava/lang/String;
+       155: ifnull        123
+       158: aload         9
+       160: invokevirtual #63                 // Method com/sample_generator/sample/Entity/MarketSegment.getSegmentName:()Ljava/lang/String;
+       163: invokevirtual #66                 // Method java/lang/String.isBlank:()Z
+       166: ifeq          172
+       169: goto          123
+       172: aload         9
+       174: invokevirtual #63                 // Method com/sample_generator/sample/Entity/MarketSegment.getSegmentName:()Ljava/lang/String;
+       177: astore        10
+       179: iload_2
+       180: iload         7
+       182: invokedynamic #71,  0             // InvokeDynamic #5:makeConcatWithConstants:(II)Ljava/lang/String;
+       187: astore        11
+       189: aload_3
+       190: aload         11
+       192: aload         10
+       194: iconst_1
+       195: aload         11
+       197: invokestatic  #22                 // Method entry:(Ljava/lang/String;Ljava/lang/String;ILjava/lang/String;)Lcom/sample_generator/sample/pdf/outline/TocOutlineEntry;
+       200: invokeinterface #28,  2           // InterfaceMethod java/util/List.add:(Ljava/lang/Object;)Z
+       205: pop
+       206: aload         10
+       208: aload         4
+       210: aload_0
+       211: invokestatic  #74                 // Method yearSpan:(Lcom/sample_generator/sample/Entity/SampleReport;)Ljava/lang/String;
+       214: invokedynamic #78,  0             // InvokeDynamic #6:makeConcatWithConstants:(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+       219: astore        12
+       221: aload_3
+       222: aload         11
+       224: invokedynamic #81,  0             // InvokeDynamic #0:makeConcatWithConstants:(Ljava/lang/String;)Ljava/lang/String;
+       229: aload         12
+       231: iconst_2
+       232: aload         11
+       234: invokedynamic #81,  0             // InvokeDynamic #0:makeConcatWithConstants:(Ljava/lang/String;)Ljava/lang/String;
+       239: invokestatic  #22                 // Method entry:(Ljava/lang/String;Ljava/lang/String;ILjava/lang/String;)Lcom/sample_generator/sample/pdf/outline/TocOutlineEntry;
+       242: invokeinterface #28,  2           // InterfaceMethod java/util/List.add:(Ljava/lang/Object;)Z
+       247: pop
+       248: aload_3
+       249: aload         11
+       251: invokedynamic #82,  0             // InvokeDynamic #7:makeConcatWithConstants:(Ljava/lang/String;)Ljava/lang/String;
+       256: aload         10
+       258: aload         4
+       260: aload_0
+       261: invokestatic  #74                 // Method yearSpan:(Lcom/sample_generator/sample/Entity/SampleReport;)Ljava/lang/String;
+       264: invokedynamic #83,  0             // InvokeDynamic #8:makeConcatWithConstants:(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+       269: iconst_3
+       270: aload         11
+       272: invokedynamic #82,  0             // InvokeDynamic #7:makeConcatWithConstants:(Ljava/lang/String;)Ljava/lang/String;
+       277: invokestatic  #22                 // Method entry:(Ljava/lang/String;Ljava/lang/String;ILjava/lang/String;)Lcom/sample_generator/sample/pdf/outline/TocOutlineEntry;
+       280: invokeinterface #28,  2           // InterfaceMethod java/util/List.add:(Ljava/lang/Object;)Z
+       285: pop
+       286: iconst_2
+       287: istore        13
+       289: aload         6
+       291: invokeinterface #47,  1           // InterfaceMethod java/util/List.iterator:()Ljava/util/Iterator;
+       296: astore        14
+       298: aload         14
+       300: invokeinterface #51,  1           // InterfaceMethod java/util/Iterator.hasNext:()Z
+       305: ifeq          437
+       308: aload         14
+       310: invokeinterface #57,  1           // InterfaceMethod java/util/Iterator.next:()Ljava/lang/Object;
+       315: checkcast     #61                 // class com/sample_generator/sample/Entity/MarketSegment
+       318: astore        15
+       320: aload         15
+       322: ifnull        298
+       325: aload         15
+       327: invokevirtual #63                 // Method com/sample_generator/sample/Entity/MarketSegment.getSegmentName:()Ljava/lang/String;
+       330: ifnonnull     336
+       333: goto          298
+       336: aload         15
+       338: invokevirtual #63                 // Method com/sample_generator/sample/Entity/MarketSegment.getSegmentName:()Ljava/lang/String;
+       341: astore        16
+       343: aload_3
+       344: aload         11
+       346: iload         13
+       348: invokedynamic #84,  0             // InvokeDynamic #5:makeConcatWithConstants:(Ljava/lang/String;I)Ljava/lang/String;
+       353: aload         10
+       355: aload         4
+       357: aload         16
+       359: aload_0
+       360: invokestatic  #74                 // Method yearSpan:(Lcom/sample_generator/sample/Entity/SampleReport;)Ljava/lang/String;
+       363: invokedynamic #87,  0             // InvokeDynamic #9:makeConcatWithConstants:(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+       368: iconst_2
+       369: aload         11
+       371: iload         13
+       373: invokedynamic #84,  0             // InvokeDynamic #5:makeConcatWithConstants:(Ljava/lang/String;I)Ljava/lang/String;
+       378: invokestatic  #22                 // Method entry:(Ljava/lang/String;Ljava/lang/String;ILjava/lang/String;)Lcom/sample_generator/sample/pdf/outline/TocOutlineEntry;
+       381: invokeinterface #28,  2           // InterfaceMethod java/util/List.add:(Ljava/lang/Object;)Z
+       386: pop
+       387: aload_3
+       388: aload         11
+       390: iload         13
+       392: invokedynamic #90,  0             // InvokeDynamic #10:makeConcatWithConstants:(Ljava/lang/String;I)Ljava/lang/String;
+       397: aload         10
+       399: aload         4
+       401: aload         16
+       403: aload_0
+       404: invokestatic  #74                 // Method yearSpan:(Lcom/sample_generator/sample/Entity/SampleReport;)Ljava/lang/String;
+       407: invokedynamic #91,  0             // InvokeDynamic #11:makeConcatWithConstants:(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+       412: iconst_3
+       413: aload         11
+       415: iload         13
+       417: invokedynamic #90,  0             // InvokeDynamic #10:makeConcatWithConstants:(Ljava/lang/String;I)Ljava/lang/String;
+       422: invokestatic  #22                 // Method entry:(Ljava/lang/String;Ljava/lang/String;ILjava/lang/String;)Lcom/sample_generator/sample/pdf/outline/TocOutlineEntry;
+       425: invokeinterface #28,  2           // InterfaceMethod java/util/List.add:(Ljava/lang/Object;)Z
+       430: pop
+       431: iinc          13, 1
+       434: goto          298
+       437: aload_3
+       438: aload         9
+       440: invokevirtual #92                 // Method com/sample_generator/sample/Entity/MarketSegment.getChildren:()Ljava/util/List;
+       443: aload         11
+       445: iload         13
+       447: aload         4
+       449: aload_0
+       450: iconst_2
+       451: invokestatic  #96                 // Method appendGeoTocEntries:(Ljava/util/List;Ljava/util/List;Ljava/lang/String;ILjava/lang/String;Lcom/sample_generator/sample/Entity/SampleReport;I)V
+       454: iinc          7, 1
+       457: goto          123
+       460: aload_3
+       461: areturn
+      LineNumberTable:
+        line 19: 0
+        line 20: 8
+        line 22: 14
+        line 23: 39
+        line 24: 69
+        line 26: 99
+        line 27: 105
+        line 29: 111
+        line 30: 114
+        line 31: 145
+        line 32: 169
+        line 34: 172
+        line 35: 179
+        line 37: 189
+        line 39: 206
+        line 40: 211
+        line 41: 221
+        line 42: 248
+        line 44: 261
+        line 42: 277
+        line 48: 286
+        line 49: 289
+        line 50: 320
+        line 51: 333
+        line 53: 336
+        line 54: 343
+        line 56: 360
+        line 54: 378
+        line 59: 387
+        line 61: 404
+        line 59: 422
+        line 65: 431
+        line 66: 434
+        line 68: 437
+        line 69: 454
+        line 70: 457
+        line 72: 460
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+          343      91    16   dim   Ljava/lang/String;
+          320     114    15 dimension   Lcom/sample_generator/sample/Entity/MarketSegment;
+          179     278    10 regionName   Ljava/lang/String;
+          189     268    11 regionPrefix   Ljava/lang/String;
+          221     236    12 valueTitle   Ljava/lang/String;
+          289     168    13 section   I
+          145     312     9 region   Lcom/sample_generator/sample/Entity/MarketSegment;
+            0     462     0 report   Lcom/sample_generator/sample/Entity/SampleReport;
+            0     462     1 roots   Ljava/util/List;
+            0     462     2 chapter   I
+            8     454     3 entries   Ljava/util/List;
+           14     448     4 market   Ljava/lang/String;
+          105     357     5 regions   Ljava/util/List;
+          111     351     6 segmentDimensions   Ljava/util/List;
+          114     348     7 regionIndex   I
+      LocalVariableTypeTable:
+        Start  Length  Slot  Name   Signature
+            0     462     1 roots   Ljava/util/List<Lcom/sample_generator/sample/Entity/MarketSegment;>;
+            8     454     3 entries   Ljava/util/List<Lcom/sample_generator/sample/pdf/outline/TocOutlineEntry;>;
+          105     357     5 regions   Ljava/util/List<Lcom/sample_generator/sample/Entity/MarketSegment;>;
+          111     351     6 segmentDimensions   Ljava/util/List<Lcom/sample_generator/sample/Entity/MarketSegment;>;
+      StackMapTable: number_of_entries = 6
+        frame_type = 255 /* full_frame */
+          offset_delta = 123
+          locals = [ class com/sample_generator/sample/Entity/SampleReport, class java/util/List, int, class java/util/List, class java/lang/String, class java/util/List, class java/util/List, int, class java/util/Iterator ]
+          stack = []
+        frame_type = 252 /* append */
+          offset_delta = 48
+          locals = [ class com/sample_generator/sample/Entity/MarketSegment ]
+        frame_type = 255 /* full_frame */
+          offset_delta = 125
+          locals = [ class com/sample_generator/sample/Entity/SampleReport, class java/util/List, int, class java/util/List, class java/lang/String, class java/util/List, class java/util/List, int, class java/util/Iterator, class com/sample_generator/sample/Entity/MarketSegment, class java/lang/String, class java/lang/String, class java/lang/String, int, class java/util/Iterator ]
+          stack = []
+        frame_type = 252 /* append */
+          offset_delta = 37
+          locals = [ class com/sample_generator/sample/Entity/MarketSegment ]
+        frame_type = 249 /* chop */
+          offset_delta = 100
+        frame_type = 255 /* full_frame */
+          offset_delta = 22
+          locals = [ class com/sample_generator/sample/Entity/SampleReport, class java/util/List, int, class java/util/List, class java/lang/String, class java/util/List, class java/util/List, int ]
+          stack = []
+    MethodParameters:
+      Name                           Flags
+      report
+      roots
+      chapter
+    Signature: #177                         // (Lcom/sample_generator/sample/Entity/SampleReport;Ljava/util/List<Lcom/sample_generator/sample/Entity/MarketSegment;>;I)Ljava/util/List<Lcom/sample_generator/sample/pdf/outline/TocOutlineEntry;>;
+
+  public static java.util.List<com.sample_generator.sample.Entity.MarketSegment> resolveRegions(java.util.List<com.sample_generator.sample.Entity.MarketSegment>);
+    descriptor: (Ljava/util/List;)Ljava/util/List;
+    flags: (0x0009) ACC_PUBLIC, ACC_STATIC
+    Code:
+      stack=1, locals=2, args_size=1
+         0: aload_0
+         1: invokestatic  #103                // Method findRegionRoot:(Ljava/util/List;)Lcom/sample_generator/sample/Entity/MarketSegment;
+         4: astore_1
+         5: aload_1
+         6: ifnull        33
+         9: aload_1
+        10: invokevirtual #92                 // Method com/sample_generator/sample/Entity/MarketSegment.getChildren:()Ljava/util/List;
+        13: ifnull        33
+        16: aload_1
+        17: invokevirtual #92                 // Method com/sample_generator/sample/Entity/MarketSegment.getChildren:()Ljava/util/List;
+        20: invokeinterface #100,  1          // InterfaceMethod java/util/List.isEmpty:()Z
+        25: ifne          33
+        28: aload_1
+        29: invokevirtual #92                 // Method com/sample_generator/sample/Entity/MarketSegment.getChildren:()Ljava/util/List;
+        32: areturn
+        33: invokestatic  #107                // InterfaceMethod java/util/List.of:()Ljava/util/List;
+        36: areturn
+      LineNumberTable:
+        line 112: 0
+        line 113: 5
+        line 114: 28
+        line 116: 33
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0      37     0 roots   Ljava/util/List;
+            5      32     1 regionRoot   Lcom/sample_generator/sample/Entity/MarketSegment;
+      LocalVariableTypeTable:
+        Start  Length  Slot  Name   Signature
+            0      37     0 roots   Ljava/util/List<Lcom/sample_generator/sample/Entity/MarketSegment;>;
+      StackMapTable: number_of_entries = 1
+        frame_type = 252 /* append */
+          offset_delta = 33
+          locals = [ class com/sample_generator/sample/Entity/MarketSegment ]
+    MethodParameters:
+      Name                           Flags
+      roots
+    Signature: #188                         // (Ljava/util/List<Lcom/sample_generator/sample/Entity/MarketSegment;>;)Ljava/util/List<Lcom/sample_generator/sample/Entity/MarketSegment;>;
+
+  public static com.sample_generator.sample.Entity.MarketSegment findRegionRoot(java.util.List<com.sample_generator.sample.Entity.MarketSegment>);
+    descriptor: (Ljava/util/List;)Lcom/sample_generator/sample/Entity/MarketSegment;
+    flags: (0x0009) ACC_PUBLIC, ACC_STATIC
+    Code:
+      stack=2, locals=3, args_size=1
+         0: aload_0
+         1: ifnonnull     6
+         4: aconst_null
+         5: areturn
+         6: aload_0
+         7: invokeinterface #47,  1           // InterfaceMethod java/util/List.iterator:()Ljava/util/Iterator;
+        12: astore_1
+        13: aload_1
+        14: invokeinterface #51,  1           // InterfaceMethod java/util/Iterator.hasNext:()Z
+        19: ifeq          60
+        22: aload_1
+        23: invokeinterface #57,  1           // InterfaceMethod java/util/Iterator.next:()Ljava/lang/Object;
+        28: checkcast     #61                 // class com/sample_generator/sample/Entity/MarketSegment
+        31: astore_2
+        32: aload_2
+        33: ifnull        57
+        36: aload_2
+        37: invokevirtual #63                 // Method com/sample_generator/sample/Entity/MarketSegment.getSegmentName:()Ljava/lang/String;
+        40: ifnull        57
+        43: aload_2
+        44: invokevirtual #63                 // Method com/sample_generator/sample/Entity/MarketSegment.getSegmentName:()Ljava/lang/String;
+        47: ldc           #110                // String Region
+        49: invokevirtual #112                // Method java/lang/String.equalsIgnoreCase:(Ljava/lang/String;)Z
+        52: ifeq          57
+        55: aload_2
+        56: areturn
+        57: goto          13
+        60: aconst_null
+        61: areturn
+      LineNumberTable:
+        line 120: 0
+        line 121: 4
+        line 123: 6
+        line 124: 32
+        line 125: 37
+        line 126: 44
+        line 127: 55
+        line 129: 57
+        line 130: 60
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+           32      25     2  root   Lcom/sample_generator/sample/Entity/MarketSegment;
+            0      62     0 roots   Ljava/util/List;
+      LocalVariableTypeTable:
+        Start  Length  Slot  Name   Signature
+            0      62     0 roots   Ljava/util/List<Lcom/sample_generator/sample/Entity/MarketSegment;>;
+      StackMapTable: number_of_entries = 4
+        frame_type = 6 /* same */
+        frame_type = 252 /* append */
+          offset_delta = 6
+          locals = [ class java/util/Iterator ]
+        frame_type = 43 /* same */
+        frame_type = 250 /* chop */
+          offset_delta = 2
+    MethodParameters:
+      Name                           Flags
+      roots
+    Signature: #190                         // (Ljava/util/List<Lcom/sample_generator/sample/Entity/MarketSegment;>;)Lcom/sample_generator/sample/Entity/MarketSegment;
+
+  public static java.util.List<com.sample_generator.sample.Entity.MarketSegment> segmentDimensions(java.util.List<com.sample_generator.sample.Entity.MarketSegment>);
+    descriptor: (Ljava/util/List;)Ljava/util/List;
+    flags: (0x0009) ACC_PUBLIC, ACC_STATIC
+    Code:
+      stack=2, locals=4, args_size=1
+         0: new           #7                  // class java/util/ArrayList
+         3: dup
+         4: invokespecial #9                  // Method java/util/ArrayList."<init>":()V
+         7: astore_1
+         8: aload_0
+         9: ifnonnull     14
+        12: aload_1
+        13: areturn
+        14: aload_0
+        15: invokeinterface #47,  1           // InterfaceMethod java/util/List.iterator:()Ljava/util/Iterator;
+        20: astore_2
+        21: aload_2
+        22: invokeinterface #51,  1           // InterfaceMethod java/util/Iterator.hasNext:()Z
+        27: ifeq          58
+        30: aload_2
+        31: invokeinterface #57,  1           // InterfaceMethod java/util/Iterator.next:()Ljava/lang/Object;
+        36: checkcast     #61                 // class com/sample_generator/sample/Entity/MarketSegment
+        39: astore_3
+        40: aload_3
+        41: invokestatic  #116                // Method com/sample_generator/sample/pdf/outline/ReportChapterLayout.isSegmentChapterRoot:(Lcom/sample_generator/sample/Entity/MarketSegment;)Z
+        44: ifeq          55
+        47: aload_1
+        48: aload_3
+        49: invokeinterface #28,  2           // InterfaceMethod java/util/List.add:(Ljava/lang/Object;)Z
+        54: pop
+        55: goto          21
+        58: aload_1
+        59: areturn
+      LineNumberTable:
+        line 134: 0
+        line 135: 8
+        line 136: 12
+        line 138: 14
+        line 139: 40
+        line 140: 47
+        line 142: 55
+        line 143: 58
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+           40      15     3  root   Lcom/sample_generator/sample/Entity/MarketSegment;
+            0      60     0 roots   Ljava/util/List;
+            8      52     1 dimensions   Ljava/util/List;
+      LocalVariableTypeTable:
+        Start  Length  Slot  Name   Signature
+            0      60     0 roots   Ljava/util/List<Lcom/sample_generator/sample/Entity/MarketSegment;>;
+            8      52     1 dimensions   Ljava/util/List<Lcom/sample_generator/sample/Entity/MarketSegment;>;
+      StackMapTable: number_of_entries = 4
+        frame_type = 252 /* append */
+          offset_delta = 14
+          locals = [ class java/util/List ]
+        frame_type = 252 /* append */
+          offset_delta = 6
+          locals = [ class java/util/Iterator ]
+        frame_type = 33 /* same */
+        frame_type = 250 /* chop */
+          offset_delta = 2
+    MethodParameters:
+      Name                           Flags
+      roots
+    Signature: #188                         // (Ljava/util/List<Lcom/sample_generator/sample/Entity/MarketSegment;>;)Ljava/util/List<Lcom/sample_generator/sample/Entity/MarketSegment;>;
+}
+SourceFile: "RegionalOutlineBuilder.java"
+BootstrapMethods:
+  0: #200 REF_invokeStatic java/lang/invoke/StringConcatFactory.makeConcatWithConstants:(Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/invoke/CallSite;
+    Method arguments:
+      #206 \u0001.1
+  1: #200 REF_invokeStatic java/lang/invoke/StringConcatFactory.makeConcatWithConstants:(Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/invoke/CallSite;
+    Method arguments:
+      #208 \u0001.2
+  2: #200 REF_invokeStatic java/lang/invoke/StringConcatFactory.makeConcatWithConstants:(Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/invoke/CallSite;
+    Method arguments:
+      #210 \u0001 Share, by Region
+  3: #200 REF_invokeStatic java/lang/invoke/StringConcatFactory.makeConcatWithConstants:(Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/invoke/CallSite;
+    Method arguments:
+      #212 \u0001.3
+  4: #200 REF_invokeStatic java/lang/invoke/StringConcatFactory.makeConcatWithConstants:(Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/invoke/CallSite;
+    Method arguments:
+      #214 Global \u0001 Value, by Region
+  5: #200 REF_invokeStatic java/lang/invoke/StringConcatFactory.makeConcatWithConstants:(Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/invoke/CallSite;
+    Method arguments:
+      #216 \u0001.\u0001
+  6: #200 REF_invokeStatic java/lang/invoke/StringConcatFactory.makeConcatWithConstants:(Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/invoke/CallSite;
+    Method arguments:
+      #218 \u0001 \u0001, \u0001 Value (USD Million)
+  7: #200 REF_invokeStatic java/lang/invoke/StringConcatFactory.makeConcatWithConstants:(Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/invoke/CallSite;
+    Method arguments:
+      #220 \u0001.1.1
+  8: #200 REF_invokeStatic java/lang/invoke/StringConcatFactory.makeConcatWithConstants:(Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/invoke/CallSite;
+    Method arguments:
+      #222 \u0001 \u0001, by Country, \u0001 Value (USD Million)
+  9: #200 REF_invokeStatic java/lang/invoke/StringConcatFactory.makeConcatWithConstants:(Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/invoke/CallSite;
+    Method arguments:
+      #224 \u0001 \u0001, by \u0001, \u0001
+  10: #200 REF_invokeStatic java/lang/invoke/StringConcatFactory.makeConcatWithConstants:(Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/invoke/CallSite;
+    Method arguments:
+      #226 \u0001.\u0001.1
+  11: #200 REF_invokeStatic java/lang/invoke/StringConcatFactory.makeConcatWithConstants:(Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/invoke/CallSite;
+    Method arguments:
+      #228 \u0001 \u0001, by \u0001, \u0001 Value (USD Million)
+  12: #200 REF_invokeStatic java/lang/invoke/StringConcatFactory.makeConcatWithConstants:(Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/invoke/CallSite;
+    Method arguments:
+      #230 \u0001-\u0001
+  13: #200 REF_invokeStatic java/lang/invoke/StringConcatFactory.makeConcatWithConstants:(Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/invoke/CallSite;
+    Method arguments:
+      #232 toc.\u0001
+InnerClasses:
+  public static final #239= #235 of #237; // Lookup=class java/lang/invoke/MethodHandles$Lookup of class java/lang/invoke/MethodHandles

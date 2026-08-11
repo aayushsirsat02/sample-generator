@@ -1,0 +1,1548 @@
+﻿Compiled from "RegionalAnalysisRenderer.java"
+public class com.sample_generator.sample.pdf.renderers.RegionalAnalysisRenderer {
+  private static final java.lang.String SOURCE_LINE;
+
+  private static final java.lang.String CHART_NOTE;
+
+  private static final java.lang.String[] SHARE_CHART_IMAGES;
+
+  private static final java.lang.String[] TREND_CHART_IMAGES;
+
+  private final com.sample_generator.sample.pdf.ThemeRenderer themeRenderer;
+
+  public com.sample_generator.sample.pdf.renderers.RegionalAnalysisRenderer(com.sample_generator.sample.pdf.ThemeRenderer);
+    Code:
+       0: aload_0
+       1: invokespecial #1                  // Method java/lang/Object."<init>":()V
+       4: aload_0
+       5: aload_1
+       6: putfield      #7                  // Field themeRenderer:Lcom/sample_generator/sample/pdf/ThemeRenderer;
+       9: return
+
+  public int render(com.itextpdf.layout.Document, com.sample_generator.sample.Entity.SampleReport, java.util.List<com.sample_generator.sample.Entity.MarketSegment>, int, com.sample_generator.sample.pdf.renderers.TocSectionRecorder) throws java.io.IOException;
+    Code:
+       0: aload_3
+       1: invokestatic  #13                 // Method com/sample_generator/sample/pdf/outline/RegionalOutlineBuilder.resolveRegions:(Ljava/util/List;)Ljava/util/List;
+       4: astore        6
+       6: aload_3
+       7: invokestatic  #19                 // Method com/sample_generator/sample/pdf/outline/RegionalOutlineBuilder.segmentDimensions:(Ljava/util/List;)Ljava/util/List;
+      10: astore        7
+      12: aload_1
+      13: new           #22                 // class com/itextpdf/layout/element/AreaBreak
+      16: dup
+      17: invokespecial #24                 // Method com/itextpdf/layout/element/AreaBreak."<init>":()V
+      20: invokevirtual #25                 // Method com/itextpdf/layout/Document.add:(Lcom/itextpdf/layout/element/AreaBreak;)Lcom/itextpdf/layout/Document;
+      23: pop
+      24: aload_2
+      25: invokevirtual #31                 // Method com/sample_generator/sample/Entity/SampleReport.getKeyName:()Ljava/lang/String;
+      28: astore        8
+      30: new           #37                 // class com/itextpdf/layout/element/Paragraph
+      33: dup
+      34: iload         4
+      36: aload         8
+      38: invokedynamic #39,  0             // InvokeDynamic #0:makeConcatWithConstants:(ILjava/lang/String;)Ljava/lang/String;
+      43: invokespecial #43                 // Method com/itextpdf/layout/element/Paragraph."<init>":(Ljava/lang/String;)V
+      46: aload_0
+      47: getfield      #7                  // Field themeRenderer:Lcom/sample_generator/sample/pdf/ThemeRenderer;
+      50: invokevirtual #46                 // Method com/sample_generator/sample/pdf/ThemeRenderer.bold:()Lcom/itextpdf/kernel/font/PdfFont;
+      53: invokevirtual #52                 // Method com/itextpdf/layout/element/Paragraph.setFont:(Lcom/itextpdf/kernel/font/PdfFont;)Lcom/itextpdf/layout/IPropertyContainer;
+      56: checkcast     #37                 // class com/itextpdf/layout/element/Paragraph
+      59: ldc           #56                 // float 22.0f
+      61: invokevirtual #57                 // Method com/itextpdf/layout/element/Paragraph.setFontSize:(F)Lcom/itextpdf/layout/IPropertyContainer;
+      64: checkcast     #37                 // class com/itextpdf/layout/element/Paragraph
+      67: invokevirtual #61                 // Method com/itextpdf/layout/element/Paragraph.setUnderline:()Lcom/itextpdf/layout/IPropertyContainer;
+      70: checkcast     #37                 // class com/itextpdf/layout/element/Paragraph
+      73: astore        9
+      75: aload         5
+      77: aload_1
+      78: iload         4
+      80: aload         9
+      82: invokeinterface #65,  4           // InterfaceMethod com/sample_generator/sample/pdf/renderers/TocSectionRecorder.recordChapter:(Lcom/itextpdf/layout/Document;ILcom/itextpdf/layout/element/Paragraph;)V
+      87: aload_0
+      88: aload_1
+      89: aload_2
+      90: aload_3
+      91: iload         4
+      93: aload         5
+      95: invokevirtual #71                 // Method renderChapterIntroduction:(Lcom/itextpdf/layout/Document;Lcom/sample_generator/sample/Entity/SampleReport;Ljava/util/List;ILcom/sample_generator/sample/pdf/renderers/TocSectionRecorder;)V
+      98: iconst_4
+      99: istore        10
+     101: aload         6
+     103: invokeinterface #75,  1           // InterfaceMethod java/util/List.iterator:()Ljava/util/Iterator;
+     108: astore        11
+     110: aload         11
+     112: invokeinterface #81,  1           // InterfaceMethod java/util/Iterator.hasNext:()Z
+     117: ifeq          184
+     120: aload         11
+     122: invokeinterface #87,  1           // InterfaceMethod java/util/Iterator.next:()Ljava/lang/Object;
+     127: checkcast     #91                 // class com/sample_generator/sample/Entity/MarketSegment
+     130: astore        12
+     132: aload         12
+     134: ifnull        110
+     137: aload         12
+     139: invokevirtual #93                 // Method com/sample_generator/sample/Entity/MarketSegment.getSegmentName:()Ljava/lang/String;
+     142: ifnull        110
+     145: aload         12
+     147: invokevirtual #93                 // Method com/sample_generator/sample/Entity/MarketSegment.getSegmentName:()Ljava/lang/String;
+     150: invokevirtual #96                 // Method java/lang/String.isBlank:()Z
+     153: ifeq          159
+     156: goto          110
+     159: aload_0
+     160: aload_1
+     161: aload_2
+     162: aload         12
+     164: aload         7
+     166: iload         4
+     168: invokestatic  #101                // Method java/lang/String.valueOf:(I)Ljava/lang/String;
+     171: iload         10
+     173: aload         5
+     175: invokevirtual #105                // Method renderRegionBlock:(Lcom/itextpdf/layout/Document;Lcom/sample_generator/sample/Entity/SampleReport;Lcom/sample_generator/sample/Entity/MarketSegment;Ljava/util/List;Ljava/lang/String;ILcom/sample_generator/sample/pdf/renderers/TocSectionRecorder;)V
+     178: iinc          10, 1
+     181: goto          110
+     184: aload         6
+     186: invokeinterface #109,  1          // InterfaceMethod java/util/List.isEmpty:()Z
+     191: ifeq          252
+     194: aload_0
+     195: invokevirtual #112                // Method defaultRegionNames:()Ljava/util/List;
+     198: invokeinterface #75,  1           // InterfaceMethod java/util/List.iterator:()Ljava/util/Iterator;
+     203: astore        11
+     205: aload         11
+     207: invokeinterface #81,  1           // InterfaceMethod java/util/Iterator.hasNext:()Z
+     212: ifeq          252
+     215: aload         11
+     217: invokeinterface #87,  1           // InterfaceMethod java/util/Iterator.next:()Ljava/lang/Object;
+     222: checkcast     #97                 // class java/lang/String
+     225: astore        12
+     227: aload_0
+     228: aload_1
+     229: aload_2
+     230: aload         12
+     232: aload         7
+     234: iload         4
+     236: invokestatic  #101                // Method java/lang/String.valueOf:(I)Ljava/lang/String;
+     239: iload         10
+     241: aload         5
+     243: invokevirtual #116                // Method renderFallbackRegion:(Lcom/itextpdf/layout/Document;Lcom/sample_generator/sample/Entity/SampleReport;Ljava/lang/String;Ljava/util/List;Ljava/lang/String;ILcom/sample_generator/sample/pdf/renderers/TocSectionRecorder;)V
+     246: iinc          10, 1
+     249: goto          205
+     252: iload         4
+     254: iconst_1
+     255: iadd
+     256: ireturn
+
+  private void renderChapterIntroduction(com.itextpdf.layout.Document, com.sample_generator.sample.Entity.SampleReport, java.util.List<com.sample_generator.sample.Entity.MarketSegment>, int, com.sample_generator.sample.pdf.renderers.TocSectionRecorder) throws java.io.IOException;
+    Code:
+       0: aload_2
+       1: invokevirtual #31                 // Method com/sample_generator/sample/Entity/SampleReport.getKeyName:()Ljava/lang/String;
+       4: astore        6
+       6: aload_0
+       7: aload_2
+       8: invokevirtual #120                // Method yearSpan:(Lcom/sample_generator/sample/Entity/SampleReport;)Ljava/lang/String;
+      11: astore        7
+      13: aload_2
+      14: invokevirtual #124                // Method com/sample_generator/sample/Entity/SampleReport.getBaseYear:()I
+      17: aload_2
+      18: invokevirtual #128                // Method com/sample_generator/sample/Entity/SampleReport.getForecastYear:()I
+      21: invokedynamic #131,  0            // InvokeDynamic #1:makeConcatWithConstants:(II)Ljava/lang/String;
+      26: astore        8
+      28: iload         4
+      30: invokestatic  #101                // Method java/lang/String.valueOf:(I)Ljava/lang/String;
+      33: astore        9
+      35: aload         5
+      37: aload_1
+      38: aload         9
+      40: invokedynamic #134,  0            // InvokeDynamic #2:makeConcatWithConstants:(Ljava/lang/String;)Ljava/lang/String;
+      45: new           #37                 // class com/itextpdf/layout/element/Paragraph
+      48: dup
+      49: aload         9
+      51: invokedynamic #137,  0            // InvokeDynamic #3:makeConcatWithConstants:(Ljava/lang/String;)Ljava/lang/String;
+      56: invokespecial #43                 // Method com/itextpdf/layout/element/Paragraph."<init>":(Ljava/lang/String;)V
+      59: aload_0
+      60: getfield      #7                  // Field themeRenderer:Lcom/sample_generator/sample/pdf/ThemeRenderer;
+      63: invokevirtual #46                 // Method com/sample_generator/sample/pdf/ThemeRenderer.bold:()Lcom/itextpdf/kernel/font/PdfFont;
+      66: invokevirtual #52                 // Method com/itextpdf/layout/element/Paragraph.setFont:(Lcom/itextpdf/kernel/font/PdfFont;)Lcom/itextpdf/layout/IPropertyContainer;
+      69: checkcast     #37                 // class com/itextpdf/layout/element/Paragraph
+      72: ldc           #138                // float 18.0f
+      74: invokevirtual #57                 // Method com/itextpdf/layout/element/Paragraph.setFontSize:(F)Lcom/itextpdf/layout/IPropertyContainer;
+      77: checkcast     #37                 // class com/itextpdf/layout/element/Paragraph
+      80: iconst_1
+      81: invokevirtual #139                // Method com/itextpdf/layout/element/Paragraph.setKeepWithNext:(Z)Lcom/itextpdf/layout/element/IElement;
+      84: checkcast     #37                 // class com/itextpdf/layout/element/Paragraph
+      87: invokeinterface #143,  4          // InterfaceMethod com/sample_generator/sample/pdf/renderers/TocSectionRecorder.recordSection:(Lcom/itextpdf/layout/Document;Ljava/lang/String;Lcom/itextpdf/layout/element/Paragraph;)V
+      92: aload_1
+      93: new           #37                 // class com/itextpdf/layout/element/Paragraph
+      96: dup
+      97: aload         6
+      99: aload         7
+     101: invokedynamic #147,  0            // InvokeDynamic #4:makeConcatWithConstants:(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+     106: invokespecial #43                 // Method com/itextpdf/layout/element/Paragraph."<init>":(Ljava/lang/String;)V
+     109: aload_0
+     110: getfield      #7                  // Field themeRenderer:Lcom/sample_generator/sample/pdf/ThemeRenderer;
+     113: invokevirtual #150                // Method com/sample_generator/sample/pdf/ThemeRenderer.regular:()Lcom/itextpdf/kernel/font/PdfFont;
+     116: invokevirtual #52                 // Method com/itextpdf/layout/element/Paragraph.setFont:(Lcom/itextpdf/kernel/font/PdfFont;)Lcom/itextpdf/layout/IPropertyContainer;
+     119: checkcast     #37                 // class com/itextpdf/layout/element/Paragraph
+     122: ldc           #153                // float 11.0f
+     124: invokevirtual #57                 // Method com/itextpdf/layout/element/Paragraph.setFontSize:(F)Lcom/itextpdf/layout/IPropertyContainer;
+     127: checkcast     #154                // class com/itextpdf/layout/element/IBlockElement
+     130: invokevirtual #156                // Method com/itextpdf/layout/Document.add:(Lcom/itextpdf/layout/element/IBlockElement;)Lcom/itextpdf/layout/Document;
+     133: pop
+     134: aload_0
+     135: aload_1
+     136: ldc           #159                // String assets/images/map.jpg
+     138: invokevirtual #161                // Method addImage:(Lcom/itextpdf/layout/Document;Ljava/lang/String;)V
+     141: aload         5
+     143: aload_1
+     144: aload         9
+     146: invokedynamic #165,  0            // InvokeDynamic #5:makeConcatWithConstants:(Ljava/lang/String;)Ljava/lang/String;
+     151: new           #37                 // class com/itextpdf/layout/element/Paragraph
+     154: dup
+     155: aload         9
+     157: aload         6
+     159: aload         8
+     161: invokedynamic #166,  0            // InvokeDynamic #6:makeConcatWithConstants:(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+     166: invokespecial #43                 // Method com/itextpdf/layout/element/Paragraph."<init>":(Ljava/lang/String;)V
+     169: aload_0
+     170: getfield      #7                  // Field themeRenderer:Lcom/sample_generator/sample/pdf/ThemeRenderer;
+     173: invokevirtual #46                 // Method com/sample_generator/sample/pdf/ThemeRenderer.bold:()Lcom/itextpdf/kernel/font/PdfFont;
+     176: invokevirtual #52                 // Method com/itextpdf/layout/element/Paragraph.setFont:(Lcom/itextpdf/kernel/font/PdfFont;)Lcom/itextpdf/layout/IPropertyContainer;
+     179: checkcast     #37                 // class com/itextpdf/layout/element/Paragraph
+     182: ldc           #138                // float 18.0f
+     184: invokevirtual #57                 // Method com/itextpdf/layout/element/Paragraph.setFontSize:(F)Lcom/itextpdf/layout/IPropertyContainer;
+     187: checkcast     #37                 // class com/itextpdf/layout/element/Paragraph
+     190: iconst_1
+     191: invokevirtual #139                // Method com/itextpdf/layout/element/Paragraph.setKeepWithNext:(Z)Lcom/itextpdf/layout/element/IElement;
+     194: checkcast     #37                 // class com/itextpdf/layout/element/Paragraph
+     197: invokeinterface #143,  4          // InterfaceMethod com/sample_generator/sample/pdf/renderers/TocSectionRecorder.recordSection:(Lcom/itextpdf/layout/Document;Ljava/lang/String;Lcom/itextpdf/layout/element/Paragraph;)V
+     202: aload_1
+     203: new           #37                 // class com/itextpdf/layout/element/Paragraph
+     206: dup
+     207: aload         6
+     209: getstatic     #169                // Field java/util/Locale.ROOT:Ljava/util/Locale;
+     212: invokevirtual #175                // Method java/lang/String.toUpperCase:(Ljava/util/Locale;)Ljava/lang/String;
+     215: aload         8
+     217: invokedynamic #179,  0            // InvokeDynamic #7:makeConcatWithConstants:(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+     222: invokespecial #43                 // Method com/itextpdf/layout/element/Paragraph."<init>":(Ljava/lang/String;)V
+     225: aload_0
+     226: getfield      #7                  // Field themeRenderer:Lcom/sample_generator/sample/pdf/ThemeRenderer;
+     229: invokevirtual #180                // Method com/sample_generator/sample/pdf/ThemeRenderer.semiBold:()Lcom/itextpdf/kernel/font/PdfFont;
+     232: invokevirtual #52                 // Method com/itextpdf/layout/element/Paragraph.setFont:(Lcom/itextpdf/kernel/font/PdfFont;)Lcom/itextpdf/layout/IPropertyContainer;
+     235: checkcast     #37                 // class com/itextpdf/layout/element/Paragraph
+     238: ldc           #183                // float 12.0f
+     240: invokevirtual #57                 // Method com/itextpdf/layout/element/Paragraph.setFontSize:(F)Lcom/itextpdf/layout/IPropertyContainer;
+     243: checkcast     #37                 // class com/itextpdf/layout/element/Paragraph
+     246: iconst_1
+     247: invokevirtual #139                // Method com/itextpdf/layout/element/Paragraph.setKeepWithNext:(Z)Lcom/itextpdf/layout/element/IElement;
+     250: checkcast     #154                // class com/itextpdf/layout/element/IBlockElement
+     253: invokevirtual #156                // Method com/itextpdf/layout/Document.add:(Lcom/itextpdf/layout/element/IBlockElement;)Lcom/itextpdf/layout/Document;
+     256: pop
+     257: aload_0
+     258: aload_1
+     259: getstatic     #184                // Field SHARE_CHART_IMAGES:[Ljava/lang/String;
+     262: iconst_0
+     263: aaload
+     264: invokevirtual #161                // Method addImage:(Lcom/itextpdf/layout/Document;Ljava/lang/String;)V
+     267: aload_0
+     268: aload_1
+     269: ldc           #188                // String Source: Primary Interviews, Surveys, Secondary Sources, In-house & Paid External Databases, Spherical Insights, 2026.
+     271: invokevirtual #190                // Method sourceParagraph:(Lcom/itextpdf/layout/Document;Ljava/lang/String;)V
+     274: aload_1
+     275: new           #37                 // class com/itextpdf/layout/element/Paragraph
+     278: dup
+     279: ldc           #193                // String Note: Charts are for illustration purposes.
+     281: invokespecial #43                 // Method com/itextpdf/layout/element/Paragraph."<init>":(Ljava/lang/String;)V
+     284: aload_0
+     285: getfield      #7                  // Field themeRenderer:Lcom/sample_generator/sample/pdf/ThemeRenderer;
+     288: invokevirtual #150                // Method com/sample_generator/sample/pdf/ThemeRenderer.regular:()Lcom/itextpdf/kernel/font/PdfFont;
+     291: invokevirtual #52                 // Method com/itextpdf/layout/element/Paragraph.setFont:(Lcom/itextpdf/kernel/font/PdfFont;)Lcom/itextpdf/layout/IPropertyContainer;
+     294: checkcast     #37                 // class com/itextpdf/layout/element/Paragraph
+     297: ldc           #195                // float 9.0f
+     299: invokevirtual #57                 // Method com/itextpdf/layout/element/Paragraph.setFontSize:(F)Lcom/itextpdf/layout/IPropertyContainer;
+     302: checkcast     #154                // class com/itextpdf/layout/element/IBlockElement
+     305: invokevirtual #156                // Method com/itextpdf/layout/Document.add:(Lcom/itextpdf/layout/element/IBlockElement;)Lcom/itextpdf/layout/Document;
+     308: pop
+     309: aload_0
+     310: aload_2
+     311: aload_3
+     312: invokestatic  #13                 // Method com/sample_generator/sample/pdf/outline/RegionalOutlineBuilder.resolveRegions:(Ljava/util/List;)Ljava/util/List;
+     315: invokevirtual #196                // Method regionRowLabelsFromData:(Lcom/sample_generator/sample/Entity/SampleReport;Ljava/util/List;)Ljava/util/List;
+     318: astore        10
+     320: aload         5
+     322: aload_1
+     323: aload         9
+     325: invokedynamic #200,  0            // InvokeDynamic #8:makeConcatWithConstants:(Ljava/lang/String;)Ljava/lang/String;
+     330: new           #37                 // class com/itextpdf/layout/element/Paragraph
+     333: dup
+     334: aload         9
+     336: aload         6
+     338: invokedynamic #201,  0            // InvokeDynamic #9:makeConcatWithConstants:(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+     343: invokespecial #43                 // Method com/itextpdf/layout/element/Paragraph."<init>":(Ljava/lang/String;)V
+     346: aload_0
+     347: getfield      #7                  // Field themeRenderer:Lcom/sample_generator/sample/pdf/ThemeRenderer;
+     350: invokevirtual #46                 // Method com/sample_generator/sample/pdf/ThemeRenderer.bold:()Lcom/itextpdf/kernel/font/PdfFont;
+     353: invokevirtual #52                 // Method com/itextpdf/layout/element/Paragraph.setFont:(Lcom/itextpdf/kernel/font/PdfFont;)Lcom/itextpdf/layout/IPropertyContainer;
+     356: checkcast     #37                 // class com/itextpdf/layout/element/Paragraph
+     359: ldc           #138                // float 18.0f
+     361: invokevirtual #57                 // Method com/itextpdf/layout/element/Paragraph.setFontSize:(F)Lcom/itextpdf/layout/IPropertyContainer;
+     364: checkcast     #37                 // class com/itextpdf/layout/element/Paragraph
+     367: iconst_1
+     368: invokevirtual #139                // Method com/itextpdf/layout/element/Paragraph.setKeepWithNext:(Z)Lcom/itextpdf/layout/element/IElement;
+     371: checkcast     #37                 // class com/itextpdf/layout/element/Paragraph
+     374: invokeinterface #143,  4          // InterfaceMethod com/sample_generator/sample/pdf/renderers/TocSectionRecorder.recordSection:(Lcom/itextpdf/layout/Document;Ljava/lang/String;Lcom/itextpdf/layout/element/Paragraph;)V
+     379: aload_1
+     380: new           #37                 // class com/itextpdf/layout/element/Paragraph
+     383: dup
+     384: aload         9
+     386: aload         6
+     388: aload         7
+     390: invokedynamic #202,  0            // InvokeDynamic #10:makeConcatWithConstants:(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+     395: invokespecial #43                 // Method com/itextpdf/layout/element/Paragraph."<init>":(Ljava/lang/String;)V
+     398: aload_0
+     399: getfield      #7                  // Field themeRenderer:Lcom/sample_generator/sample/pdf/ThemeRenderer;
+     402: invokevirtual #46                 // Method com/sample_generator/sample/pdf/ThemeRenderer.bold:()Lcom/itextpdf/kernel/font/PdfFont;
+     405: invokevirtual #52                 // Method com/itextpdf/layout/element/Paragraph.setFont:(Lcom/itextpdf/kernel/font/PdfFont;)Lcom/itextpdf/layout/IPropertyContainer;
+     408: checkcast     #37                 // class com/itextpdf/layout/element/Paragraph
+     411: ldc           #183                // float 12.0f
+     413: invokevirtual #57                 // Method com/itextpdf/layout/element/Paragraph.setFontSize:(F)Lcom/itextpdf/layout/IPropertyContainer;
+     416: checkcast     #37                 // class com/itextpdf/layout/element/Paragraph
+     419: iconst_1
+     420: invokevirtual #139                // Method com/itextpdf/layout/element/Paragraph.setKeepWithNext:(Z)Lcom/itextpdf/layout/element/IElement;
+     423: checkcast     #154                // class com/itextpdf/layout/element/IBlockElement
+     426: invokevirtual #156                // Method com/itextpdf/layout/Document.add:(Lcom/itextpdf/layout/element/IBlockElement;)Lcom/itextpdf/layout/Document;
+     429: pop
+     430: aload_0
+     431: aload_1
+     432: aload_2
+     433: ldc           #203                // String Region
+     435: aload         10
+     437: invokevirtual #205                // Method addCompactRegionTable:(Lcom/itextpdf/layout/Document;Lcom/sample_generator/sample/Entity/SampleReport;Ljava/lang/String;Ljava/util/List;)V
+     440: aload_0
+     441: aload_1
+     442: ldc           #188                // String Source: Primary Interviews, Surveys, Secondary Sources, In-house & Paid External Databases, Spherical Insights, 2026.
+     444: invokevirtual #190                // Method sourceParagraph:(Lcom/itextpdf/layout/Document;Ljava/lang/String;)V
+     447: return
+
+  private java.util.List<java.lang.String> regionRowLabelsFromData(com.sample_generator.sample.Entity.SampleReport, java.util.List<com.sample_generator.sample.Entity.MarketSegment>);
+    Code:
+       0: aload_2
+       1: ifnull        101
+       4: aload_2
+       5: invokeinterface #109,  1          // InterfaceMethod java/util/List.isEmpty:()Z
+      10: ifne          101
+      13: new           #209                // class java/util/ArrayList
+      16: dup
+      17: invokespecial #211                // Method java/util/ArrayList."<init>":()V
+      20: astore_3
+      21: aload_2
+      22: invokeinterface #75,  1           // InterfaceMethod java/util/List.iterator:()Ljava/util/Iterator;
+      27: astore        4
+      29: aload         4
+      31: invokeinterface #81,  1           // InterfaceMethod java/util/Iterator.hasNext:()Z
+      36: ifeq          90
+      39: aload         4
+      41: invokeinterface #87,  1           // InterfaceMethod java/util/Iterator.next:()Ljava/lang/Object;
+      46: checkcast     #91                 // class com/sample_generator/sample/Entity/MarketSegment
+      49: astore        5
+      51: aload         5
+      53: ifnull        87
+      56: aload         5
+      58: invokevirtual #93                 // Method com/sample_generator/sample/Entity/MarketSegment.getSegmentName:()Ljava/lang/String;
+      61: ifnull        87
+      64: aload         5
+      66: invokevirtual #93                 // Method com/sample_generator/sample/Entity/MarketSegment.getSegmentName:()Ljava/lang/String;
+      69: invokevirtual #96                 // Method java/lang/String.isBlank:()Z
+      72: ifne          87
+      75: aload_3
+      76: aload         5
+      78: invokevirtual #93                 // Method com/sample_generator/sample/Entity/MarketSegment.getSegmentName:()Ljava/lang/String;
+      81: invokeinterface #212,  2          // InterfaceMethod java/util/List.add:(Ljava/lang/Object;)Z
+      86: pop
+      87: goto          29
+      90: aload_3
+      91: invokeinterface #109,  1          // InterfaceMethod java/util/List.isEmpty:()Z
+      96: ifne          101
+      99: aload_3
+     100: areturn
+     101: aload_0
+     102: invokevirtual #112                // Method defaultRegionNames:()Ljava/util/List;
+     105: areturn
+
+  private void renderRegionBlock(com.itextpdf.layout.Document, com.sample_generator.sample.Entity.SampleReport, com.sample_generator.sample.Entity.MarketSegment, java.util.List<com.sample_generator.sample.Entity.MarketSegment>, java.lang.String, int, com.sample_generator.sample.pdf.renderers.TocSectionRecorder) throws java.io.IOException;
+    Code:
+       0: aload_3
+       1: invokevirtual #93                 // Method com/sample_generator/sample/Entity/MarketSegment.getSegmentName:()Ljava/lang/String;
+       4: astore        8
+       6: aload_2
+       7: invokevirtual #31                 // Method com/sample_generator/sample/Entity/SampleReport.getKeyName:()Ljava/lang/String;
+      10: astore        9
+      12: aload_0
+      13: aload_2
+      14: invokevirtual #120                // Method yearSpan:(Lcom/sample_generator/sample/Entity/SampleReport;)Ljava/lang/String;
+      17: astore        10
+      19: aload         5
+      21: iload         6
+      23: invokedynamic #215,  0            // InvokeDynamic #11:makeConcatWithConstants:(Ljava/lang/String;I)Ljava/lang/String;
+      28: astore        11
+      30: aload         7
+      32: aload_1
+      33: aload         11
+      35: new           #37                 // class com/itextpdf/layout/element/Paragraph
+      38: dup
+      39: aload         11
+      41: aload         8
+      43: invokedynamic #218,  0            // InvokeDynamic #12:makeConcatWithConstants:(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+      48: invokespecial #43                 // Method com/itextpdf/layout/element/Paragraph."<init>":(Ljava/lang/String;)V
+      51: aload_0
+      52: getfield      #7                  // Field themeRenderer:Lcom/sample_generator/sample/pdf/ThemeRenderer;
+      55: invokevirtual #46                 // Method com/sample_generator/sample/pdf/ThemeRenderer.bold:()Lcom/itextpdf/kernel/font/PdfFont;
+      58: invokevirtual #52                 // Method com/itextpdf/layout/element/Paragraph.setFont:(Lcom/itextpdf/kernel/font/PdfFont;)Lcom/itextpdf/layout/IPropertyContainer;
+      61: checkcast     #37                 // class com/itextpdf/layout/element/Paragraph
+      64: ldc           #138                // float 18.0f
+      66: invokevirtual #57                 // Method com/itextpdf/layout/element/Paragraph.setFontSize:(F)Lcom/itextpdf/layout/IPropertyContainer;
+      69: checkcast     #37                 // class com/itextpdf/layout/element/Paragraph
+      72: iconst_1
+      73: invokevirtual #139                // Method com/itextpdf/layout/element/Paragraph.setKeepWithNext:(Z)Lcom/itextpdf/layout/element/IElement;
+      76: checkcast     #37                 // class com/itextpdf/layout/element/Paragraph
+      79: invokeinterface #143,  4          // InterfaceMethod com/sample_generator/sample/pdf/renderers/TocSectionRecorder.recordSection:(Lcom/itextpdf/layout/Document;Ljava/lang/String;Lcom/itextpdf/layout/element/Paragraph;)V
+      84: aload         11
+      86: invokedynamic #134,  0            // InvokeDynamic #2:makeConcatWithConstants:(Ljava/lang/String;)Ljava/lang/String;
+      91: astore        12
+      93: aload         7
+      95: aload_1
+      96: aload         12
+      98: new           #37                 // class com/itextpdf/layout/element/Paragraph
+     101: dup
+     102: aload         12
+     104: aload         8
+     106: aload         9
+     108: aload         10
+     110: invokedynamic #219,  0            // InvokeDynamic #13:makeConcatWithConstants:(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+     115: invokespecial #43                 // Method com/itextpdf/layout/element/Paragraph."<init>":(Ljava/lang/String;)V
+     118: aload_0
+     119: getfield      #7                  // Field themeRenderer:Lcom/sample_generator/sample/pdf/ThemeRenderer;
+     122: invokevirtual #46                 // Method com/sample_generator/sample/pdf/ThemeRenderer.bold:()Lcom/itextpdf/kernel/font/PdfFont;
+     125: invokevirtual #52                 // Method com/itextpdf/layout/element/Paragraph.setFont:(Lcom/itextpdf/kernel/font/PdfFont;)Lcom/itextpdf/layout/IPropertyContainer;
+     128: checkcast     #37                 // class com/itextpdf/layout/element/Paragraph
+     131: ldc           #222                // float 14.0f
+     133: invokevirtual #57                 // Method com/itextpdf/layout/element/Paragraph.setFontSize:(F)Lcom/itextpdf/layout/IPropertyContainer;
+     136: checkcast     #37                 // class com/itextpdf/layout/element/Paragraph
+     139: iconst_1
+     140: invokevirtual #139                // Method com/itextpdf/layout/element/Paragraph.setKeepWithNext:(Z)Lcom/itextpdf/layout/element/IElement;
+     143: checkcast     #37                 // class com/itextpdf/layout/element/Paragraph
+     146: invokeinterface #143,  4          // InterfaceMethod com/sample_generator/sample/pdf/renderers/TocSectionRecorder.recordSection:(Lcom/itextpdf/layout/Document;Ljava/lang/String;Lcom/itextpdf/layout/element/Paragraph;)V
+     151: aload         11
+     153: invokedynamic #223,  0            // InvokeDynamic #14:makeConcatWithConstants:(Ljava/lang/String;)Ljava/lang/String;
+     158: astore        13
+     160: aload         7
+     162: aload_1
+     163: aload         13
+     165: new           #37                 // class com/itextpdf/layout/element/Paragraph
+     168: dup
+     169: aload         13
+     171: aload         8
+     173: aload         9
+     175: aload         10
+     177: invokedynamic #224,  0            // InvokeDynamic #15:makeConcatWithConstants:(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+     182: invokespecial #43                 // Method com/itextpdf/layout/element/Paragraph."<init>":(Ljava/lang/String;)V
+     185: aload_0
+     186: getfield      #7                  // Field themeRenderer:Lcom/sample_generator/sample/pdf/ThemeRenderer;
+     189: invokevirtual #180                // Method com/sample_generator/sample/pdf/ThemeRenderer.semiBold:()Lcom/itextpdf/kernel/font/PdfFont;
+     192: invokevirtual #52                 // Method com/itextpdf/layout/element/Paragraph.setFont:(Lcom/itextpdf/kernel/font/PdfFont;)Lcom/itextpdf/layout/IPropertyContainer;
+     195: checkcast     #37                 // class com/itextpdf/layout/element/Paragraph
+     198: ldc           #183                // float 12.0f
+     200: invokevirtual #57                 // Method com/itextpdf/layout/element/Paragraph.setFontSize:(F)Lcom/itextpdf/layout/IPropertyContainer;
+     203: checkcast     #37                 // class com/itextpdf/layout/element/Paragraph
+     206: iconst_1
+     207: invokevirtual #139                // Method com/itextpdf/layout/element/Paragraph.setKeepWithNext:(Z)Lcom/itextpdf/layout/element/IElement;
+     210: checkcast     #37                 // class com/itextpdf/layout/element/Paragraph
+     213: invokeinterface #143,  4          // InterfaceMethod com/sample_generator/sample/pdf/renderers/TocSectionRecorder.recordSection:(Lcom/itextpdf/layout/Document;Ljava/lang/String;Lcom/itextpdf/layout/element/Paragraph;)V
+     218: aload_1
+     219: new           #37                 // class com/itextpdf/layout/element/Paragraph
+     222: dup
+     223: aload         13
+     225: aload         8
+     227: aload         9
+     229: aload         10
+     231: invokedynamic #225,  0            // InvokeDynamic #16:makeConcatWithConstants:(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+     236: invokespecial #43                 // Method com/itextpdf/layout/element/Paragraph."<init>":(Ljava/lang/String;)V
+     239: aload_0
+     240: getfield      #7                  // Field themeRenderer:Lcom/sample_generator/sample/pdf/ThemeRenderer;
+     243: invokevirtual #46                 // Method com/sample_generator/sample/pdf/ThemeRenderer.bold:()Lcom/itextpdf/kernel/font/PdfFont;
+     246: invokevirtual #52                 // Method com/itextpdf/layout/element/Paragraph.setFont:(Lcom/itextpdf/kernel/font/PdfFont;)Lcom/itextpdf/layout/IPropertyContainer;
+     249: checkcast     #37                 // class com/itextpdf/layout/element/Paragraph
+     252: ldc           #183                // float 12.0f
+     254: invokevirtual #57                 // Method com/itextpdf/layout/element/Paragraph.setFontSize:(F)Lcom/itextpdf/layout/IPropertyContainer;
+     257: checkcast     #37                 // class com/itextpdf/layout/element/Paragraph
+     260: iconst_1
+     261: invokevirtual #139                // Method com/itextpdf/layout/element/Paragraph.setKeepWithNext:(Z)Lcom/itextpdf/layout/element/IElement;
+     264: checkcast     #154                // class com/itextpdf/layout/element/IBlockElement
+     267: invokevirtual #156                // Method com/itextpdf/layout/Document.add:(Lcom/itextpdf/layout/element/IBlockElement;)Lcom/itextpdf/layout/Document;
+     270: pop
+     271: aload_0
+     272: aload_3
+     273: invokevirtual #226                // Method com/sample_generator/sample/Entity/MarketSegment.getChildren:()Ljava/util/List;
+     276: invokevirtual #229                // Method childNames:(Ljava/util/List;)Ljava/util/List;
+     279: astore        14
+     281: aload         14
+     283: invokeinterface #109,  1          // InterfaceMethod java/util/List.isEmpty:()Z
+     288: ifeq          298
+     291: aload         8
+     293: invokestatic  #232                // InterfaceMethod java/util/List.of:(Ljava/lang/Object;)Ljava/util/List;
+     296: astore        14
+     298: aload_0
+     299: aload_1
+     300: aload_2
+     301: ldc           #236                // String Country
+     303: aload         14
+     305: invokevirtual #238                // Method addWideValueTable:(Lcom/itextpdf/layout/Document;Lcom/sample_generator/sample/Entity/SampleReport;Ljava/lang/String;Ljava/util/List;)V
+     308: aload_0
+     309: aload_1
+     310: ldc           #188                // String Source: Primary Interviews, Surveys, Secondary Sources, In-house & Paid External Databases, Spherical Insights, 2026.
+     312: invokevirtual #190                // Method sourceParagraph:(Lcom/itextpdf/layout/Document;Ljava/lang/String;)V
+     315: iconst_2
+     316: istore        15
+     318: aload         4
+     320: invokeinterface #75,  1           // InterfaceMethod java/util/List.iterator:()Ljava/util/Iterator;
+     325: astore        16
+     327: aload         16
+     329: invokeinterface #81,  1           // InterfaceMethod java/util/Iterator.hasNext:()Z
+     334: ifeq          597
+     337: aload         16
+     339: invokeinterface #87,  1           // InterfaceMethod java/util/Iterator.next:()Ljava/lang/Object;
+     344: checkcast     #91                 // class com/sample_generator/sample/Entity/MarketSegment
+     347: astore        17
+     349: aload         17
+     351: ifnull        327
+     354: aload         17
+     356: invokevirtual #93                 // Method com/sample_generator/sample/Entity/MarketSegment.getSegmentName:()Ljava/lang/String;
+     359: ifnonnull     365
+     362: goto          327
+     365: aload         17
+     367: invokevirtual #93                 // Method com/sample_generator/sample/Entity/MarketSegment.getSegmentName:()Ljava/lang/String;
+     370: astore        18
+     372: aload         11
+     374: iload         15
+     376: invokedynamic #215,  0            // InvokeDynamic #11:makeConcatWithConstants:(Ljava/lang/String;I)Ljava/lang/String;
+     381: astore        19
+     383: aload         7
+     385: aload_1
+     386: aload         19
+     388: new           #37                 // class com/itextpdf/layout/element/Paragraph
+     391: dup
+     392: aload         19
+     394: aload         8
+     396: aload         9
+     398: aload         18
+     400: aload         10
+     402: invokedynamic #241,  0            // InvokeDynamic #17:makeConcatWithConstants:(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+     407: invokespecial #43                 // Method com/itextpdf/layout/element/Paragraph."<init>":(Ljava/lang/String;)V
+     410: aload_0
+     411: getfield      #7                  // Field themeRenderer:Lcom/sample_generator/sample/pdf/ThemeRenderer;
+     414: invokevirtual #46                 // Method com/sample_generator/sample/pdf/ThemeRenderer.bold:()Lcom/itextpdf/kernel/font/PdfFont;
+     417: invokevirtual #52                 // Method com/itextpdf/layout/element/Paragraph.setFont:(Lcom/itextpdf/kernel/font/PdfFont;)Lcom/itextpdf/layout/IPropertyContainer;
+     420: checkcast     #37                 // class com/itextpdf/layout/element/Paragraph
+     423: ldc           #138                // float 18.0f
+     425: invokevirtual #57                 // Method com/itextpdf/layout/element/Paragraph.setFontSize:(F)Lcom/itextpdf/layout/IPropertyContainer;
+     428: checkcast     #37                 // class com/itextpdf/layout/element/Paragraph
+     431: iconst_1
+     432: invokevirtual #139                // Method com/itextpdf/layout/element/Paragraph.setKeepWithNext:(Z)Lcom/itextpdf/layout/element/IElement;
+     435: checkcast     #37                 // class com/itextpdf/layout/element/Paragraph
+     438: invokeinterface #143,  4          // InterfaceMethod com/sample_generator/sample/pdf/renderers/TocSectionRecorder.recordSection:(Lcom/itextpdf/layout/Document;Ljava/lang/String;Lcom/itextpdf/layout/element/Paragraph;)V
+     443: aload         19
+     445: invokedynamic #134,  0            // InvokeDynamic #2:makeConcatWithConstants:(Ljava/lang/String;)Ljava/lang/String;
+     450: astore        20
+     452: aload         7
+     454: aload_1
+     455: aload         20
+     457: new           #37                 // class com/itextpdf/layout/element/Paragraph
+     460: dup
+     461: aload         20
+     463: aload         8
+     465: aload         9
+     467: aload         18
+     469: aload         10
+     471: invokedynamic #244,  0            // InvokeDynamic #18:makeConcatWithConstants:(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+     476: invokespecial #43                 // Method com/itextpdf/layout/element/Paragraph."<init>":(Ljava/lang/String;)V
+     479: aload_0
+     480: getfield      #7                  // Field themeRenderer:Lcom/sample_generator/sample/pdf/ThemeRenderer;
+     483: invokevirtual #180                // Method com/sample_generator/sample/pdf/ThemeRenderer.semiBold:()Lcom/itextpdf/kernel/font/PdfFont;
+     486: invokevirtual #52                 // Method com/itextpdf/layout/element/Paragraph.setFont:(Lcom/itextpdf/kernel/font/PdfFont;)Lcom/itextpdf/layout/IPropertyContainer;
+     489: checkcast     #37                 // class com/itextpdf/layout/element/Paragraph
+     492: ldc           #183                // float 12.0f
+     494: invokevirtual #57                 // Method com/itextpdf/layout/element/Paragraph.setFontSize:(F)Lcom/itextpdf/layout/IPropertyContainer;
+     497: checkcast     #37                 // class com/itextpdf/layout/element/Paragraph
+     500: iconst_1
+     501: invokevirtual #139                // Method com/itextpdf/layout/element/Paragraph.setKeepWithNext:(Z)Lcom/itextpdf/layout/element/IElement;
+     504: checkcast     #37                 // class com/itextpdf/layout/element/Paragraph
+     507: invokeinterface #143,  4          // InterfaceMethod com/sample_generator/sample/pdf/renderers/TocSectionRecorder.recordSection:(Lcom/itextpdf/layout/Document;Ljava/lang/String;Lcom/itextpdf/layout/element/Paragraph;)V
+     512: aload_1
+     513: new           #37                 // class com/itextpdf/layout/element/Paragraph
+     516: dup
+     517: aload         20
+     519: aload         8
+     521: aload         9
+     523: aload         18
+     525: aload         10
+     527: invokedynamic #245,  0            // InvokeDynamic #19:makeConcatWithConstants:(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+     532: invokespecial #43                 // Method com/itextpdf/layout/element/Paragraph."<init>":(Ljava/lang/String;)V
+     535: aload_0
+     536: getfield      #7                  // Field themeRenderer:Lcom/sample_generator/sample/pdf/ThemeRenderer;
+     539: invokevirtual #46                 // Method com/sample_generator/sample/pdf/ThemeRenderer.bold:()Lcom/itextpdf/kernel/font/PdfFont;
+     542: invokevirtual #52                 // Method com/itextpdf/layout/element/Paragraph.setFont:(Lcom/itextpdf/kernel/font/PdfFont;)Lcom/itextpdf/layout/IPropertyContainer;
+     545: checkcast     #37                 // class com/itextpdf/layout/element/Paragraph
+     548: ldc           #183                // float 12.0f
+     550: invokevirtual #57                 // Method com/itextpdf/layout/element/Paragraph.setFontSize:(F)Lcom/itextpdf/layout/IPropertyContainer;
+     553: checkcast     #37                 // class com/itextpdf/layout/element/Paragraph
+     556: iconst_1
+     557: invokevirtual #139                // Method com/itextpdf/layout/element/Paragraph.setKeepWithNext:(Z)Lcom/itextpdf/layout/element/IElement;
+     560: checkcast     #154                // class com/itextpdf/layout/element/IBlockElement
+     563: invokevirtual #156                // Method com/itextpdf/layout/Document.add:(Lcom/itextpdf/layout/element/IBlockElement;)Lcom/itextpdf/layout/Document;
+     566: pop
+     567: aload_0
+     568: aload_1
+     569: aload_2
+     570: aload         18
+     572: aload_0
+     573: aload         17
+     575: invokevirtual #226                // Method com/sample_generator/sample/Entity/MarketSegment.getChildren:()Ljava/util/List;
+     578: invokevirtual #246                // Method collectLeafSegmentNames:(Ljava/util/List;)Ljava/util/List;
+     581: invokevirtual #238                // Method addWideValueTable:(Lcom/itextpdf/layout/Document;Lcom/sample_generator/sample/Entity/SampleReport;Ljava/lang/String;Ljava/util/List;)V
+     584: aload_0
+     585: aload_1
+     586: ldc           #188                // String Source: Primary Interviews, Surveys, Secondary Sources, In-house & Paid External Databases, Spherical Insights, 2026.
+     588: invokevirtual #190                // Method sourceParagraph:(Lcom/itextpdf/layout/Document;Ljava/lang/String;)V
+     591: iinc          15, 1
+     594: goto          327
+     597: aload_0
+     598: aload_1
+     599: aload_2
+     600: aload_3
+     601: invokevirtual #226                // Method com/sample_generator/sample/Entity/MarketSegment.getChildren:()Ljava/util/List;
+     604: aload         11
+     606: iload         15
+     608: aload         7
+     610: iconst_0
+     611: invokevirtual #249                // Method renderGeoNodes:(Lcom/itextpdf/layout/Document;Lcom/sample_generator/sample/Entity/SampleReport;Ljava/util/List;Ljava/lang/String;ILcom/sample_generator/sample/pdf/renderers/TocSectionRecorder;I)V
+     614: return
+
+  private void renderFallbackRegion(com.itextpdf.layout.Document, com.sample_generator.sample.Entity.SampleReport, java.lang.String, java.util.List<com.sample_generator.sample.Entity.MarketSegment>, java.lang.String, int, com.sample_generator.sample.pdf.renderers.TocSectionRecorder) throws java.io.IOException;
+    Code:
+       0: new           #91                 // class com/sample_generator/sample/Entity/MarketSegment
+       3: dup
+       4: invokespecial #253                // Method com/sample_generator/sample/Entity/MarketSegment."<init>":()V
+       7: astore        8
+       9: aload         8
+      11: aload_3
+      12: invokevirtual #254                // Method com/sample_generator/sample/Entity/MarketSegment.setSegmentName:(Ljava/lang/String;)V
+      15: aload         8
+      17: new           #209                // class java/util/ArrayList
+      20: dup
+      21: invokespecial #211                // Method java/util/ArrayList."<init>":()V
+      24: invokevirtual #257                // Method com/sample_generator/sample/Entity/MarketSegment.setChildren:(Ljava/util/List;)V
+      27: aload_0
+      28: aload_1
+      29: aload_2
+      30: aload         8
+      32: aload         4
+      34: aload         5
+      36: iload         6
+      38: aload         7
+      40: invokevirtual #105                // Method renderRegionBlock:(Lcom/itextpdf/layout/Document;Lcom/sample_generator/sample/Entity/SampleReport;Lcom/sample_generator/sample/Entity/MarketSegment;Ljava/util/List;Ljava/lang/String;ILcom/sample_generator/sample/pdf/renderers/TocSectionRecorder;)V
+      43: return
+
+  private void renderGeoNodes(com.itextpdf.layout.Document, com.sample_generator.sample.Entity.SampleReport, java.util.List<com.sample_generator.sample.Entity.MarketSegment>, java.lang.String, int, com.sample_generator.sample.pdf.renderers.TocSectionRecorder, int) throws java.io.IOException;
+    Code:
+       0: aload_3
+       1: ifnull        13
+       4: aload_3
+       5: invokeinterface #109,  1          // InterfaceMethod java/util/List.isEmpty:()Z
+      10: ifeq          14
+      13: return
+      14: aload_2
+      15: invokevirtual #31                 // Method com/sample_generator/sample/Entity/SampleReport.getKeyName:()Ljava/lang/String;
+      18: astore        8
+      20: aload_0
+      21: aload_2
+      22: invokevirtual #120                // Method yearSpan:(Lcom/sample_generator/sample/Entity/SampleReport;)Ljava/lang/String;
+      25: astore        9
+      27: iload         5
+      29: istore        10
+      31: aload_3
+      32: invokeinterface #75,  1           // InterfaceMethod java/util/List.iterator:()Ljava/util/Iterator;
+      37: astore        11
+      39: aload         11
+      41: invokeinterface #81,  1           // InterfaceMethod java/util/Iterator.hasNext:()Z
+      46: ifeq          398
+      49: aload         11
+      51: invokeinterface #87,  1           // InterfaceMethod java/util/Iterator.next:()Ljava/lang/Object;
+      56: checkcast     #91                 // class com/sample_generator/sample/Entity/MarketSegment
+      59: astore        12
+      61: aload         12
+      63: ifnull        39
+      66: aload         12
+      68: invokevirtual #93                 // Method com/sample_generator/sample/Entity/MarketSegment.getSegmentName:()Ljava/lang/String;
+      71: ifnull        39
+      74: aload         12
+      76: invokevirtual #93                 // Method com/sample_generator/sample/Entity/MarketSegment.getSegmentName:()Ljava/lang/String;
+      79: invokevirtual #96                 // Method java/lang/String.isBlank:()Z
+      82: ifeq          88
+      85: goto          39
+      88: aload         4
+      90: iload         10
+      92: invokedynamic #215,  0            // InvokeDynamic #11:makeConcatWithConstants:(Ljava/lang/String;I)Ljava/lang/String;
+      97: astore        13
+      99: aload         6
+     101: aload_1
+     102: aload         13
+     104: new           #37                 // class com/itextpdf/layout/element/Paragraph
+     107: dup
+     108: aload         13
+     110: aload         12
+     112: invokevirtual #93                 // Method com/sample_generator/sample/Entity/MarketSegment.getSegmentName:()Ljava/lang/String;
+     115: invokedynamic #218,  0            // InvokeDynamic #12:makeConcatWithConstants:(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+     120: invokespecial #43                 // Method com/itextpdf/layout/element/Paragraph."<init>":(Ljava/lang/String;)V
+     123: aload_0
+     124: getfield      #7                  // Field themeRenderer:Lcom/sample_generator/sample/pdf/ThemeRenderer;
+     127: invokevirtual #46                 // Method com/sample_generator/sample/pdf/ThemeRenderer.bold:()Lcom/itextpdf/kernel/font/PdfFont;
+     130: invokevirtual #52                 // Method com/itextpdf/layout/element/Paragraph.setFont:(Lcom/itextpdf/kernel/font/PdfFont;)Lcom/itextpdf/layout/IPropertyContainer;
+     133: checkcast     #37                 // class com/itextpdf/layout/element/Paragraph
+     136: ldc           #138                // float 18.0f
+     138: invokevirtual #57                 // Method com/itextpdf/layout/element/Paragraph.setFontSize:(F)Lcom/itextpdf/layout/IPropertyContainer;
+     141: checkcast     #37                 // class com/itextpdf/layout/element/Paragraph
+     144: iconst_1
+     145: invokevirtual #139                // Method com/itextpdf/layout/element/Paragraph.setKeepWithNext:(Z)Lcom/itextpdf/layout/element/IElement;
+     148: checkcast     #37                 // class com/itextpdf/layout/element/Paragraph
+     151: invokeinterface #143,  4          // InterfaceMethod com/sample_generator/sample/pdf/renderers/TocSectionRecorder.recordSection:(Lcom/itextpdf/layout/Document;Ljava/lang/String;Lcom/itextpdf/layout/element/Paragraph;)V
+     156: aload         12
+     158: invokevirtual #226                // Method com/sample_generator/sample/Entity/MarketSegment.getChildren:()Ljava/util/List;
+     161: astore        14
+     163: aload         14
+     165: ifnull        198
+     168: aload         14
+     170: invokeinterface #109,  1          // InterfaceMethod java/util/List.isEmpty:()Z
+     175: ifne          198
+     178: aload_0
+     179: aload_1
+     180: aload_2
+     181: aload         14
+     183: aload         13
+     185: iconst_1
+     186: aload         6
+     188: iload         7
+     190: iconst_1
+     191: iadd
+     192: invokevirtual #249                // Method renderGeoNodes:(Lcom/itextpdf/layout/Document;Lcom/sample_generator/sample/Entity/SampleReport;Ljava/util/List;Ljava/lang/String;ILcom/sample_generator/sample/pdf/renderers/TocSectionRecorder;I)V
+     195: goto          392
+     198: aload         13
+     200: invokedynamic #134,  0            // InvokeDynamic #2:makeConcatWithConstants:(Ljava/lang/String;)Ljava/lang/String;
+     205: astore        15
+     207: aload         6
+     209: aload_1
+     210: aload         15
+     212: new           #37                 // class com/itextpdf/layout/element/Paragraph
+     215: dup
+     216: aload         15
+     218: aload         12
+     220: invokevirtual #93                 // Method com/sample_generator/sample/Entity/MarketSegment.getSegmentName:()Ljava/lang/String;
+     223: aload         8
+     225: aload         9
+     227: invokedynamic #219,  0            // InvokeDynamic #13:makeConcatWithConstants:(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+     232: invokespecial #43                 // Method com/itextpdf/layout/element/Paragraph."<init>":(Ljava/lang/String;)V
+     235: aload_0
+     236: getfield      #7                  // Field themeRenderer:Lcom/sample_generator/sample/pdf/ThemeRenderer;
+     239: invokevirtual #180                // Method com/sample_generator/sample/pdf/ThemeRenderer.semiBold:()Lcom/itextpdf/kernel/font/PdfFont;
+     242: invokevirtual #52                 // Method com/itextpdf/layout/element/Paragraph.setFont:(Lcom/itextpdf/kernel/font/PdfFont;)Lcom/itextpdf/layout/IPropertyContainer;
+     245: checkcast     #37                 // class com/itextpdf/layout/element/Paragraph
+     248: ldc           #183                // float 12.0f
+     250: invokevirtual #57                 // Method com/itextpdf/layout/element/Paragraph.setFontSize:(F)Lcom/itextpdf/layout/IPropertyContainer;
+     253: checkcast     #37                 // class com/itextpdf/layout/element/Paragraph
+     256: iconst_1
+     257: invokevirtual #139                // Method com/itextpdf/layout/element/Paragraph.setKeepWithNext:(Z)Lcom/itextpdf/layout/element/IElement;
+     260: checkcast     #37                 // class com/itextpdf/layout/element/Paragraph
+     263: invokeinterface #143,  4          // InterfaceMethod com/sample_generator/sample/pdf/renderers/TocSectionRecorder.recordSection:(Lcom/itextpdf/layout/Document;Ljava/lang/String;Lcom/itextpdf/layout/element/Paragraph;)V
+     268: aload_1
+     269: new           #37                 // class com/itextpdf/layout/element/Paragraph
+     272: dup
+     273: aload         12
+     275: invokevirtual #93                 // Method com/sample_generator/sample/Entity/MarketSegment.getSegmentName:()Ljava/lang/String;
+     278: getstatic     #169                // Field java/util/Locale.ROOT:Ljava/util/Locale;
+     281: invokevirtual #175                // Method java/lang/String.toUpperCase:(Ljava/util/Locale;)Ljava/lang/String;
+     284: aload         8
+     286: getstatic     #169                // Field java/util/Locale.ROOT:Ljava/util/Locale;
+     289: invokevirtual #175                // Method java/lang/String.toUpperCase:(Ljava/util/Locale;)Ljava/lang/String;
+     292: aload         9
+     294: invokedynamic #261,  0            // InvokeDynamic #20:makeConcatWithConstants:(Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+     299: invokespecial #43                 // Method com/itextpdf/layout/element/Paragraph."<init>":(Ljava/lang/String;)V
+     302: aload_0
+     303: getfield      #7                  // Field themeRenderer:Lcom/sample_generator/sample/pdf/ThemeRenderer;
+     306: invokevirtual #180                // Method com/sample_generator/sample/pdf/ThemeRenderer.semiBold:()Lcom/itextpdf/kernel/font/PdfFont;
+     309: invokevirtual #52                 // Method com/itextpdf/layout/element/Paragraph.setFont:(Lcom/itextpdf/kernel/font/PdfFont;)Lcom/itextpdf/layout/IPropertyContainer;
+     312: checkcast     #37                 // class com/itextpdf/layout/element/Paragraph
+     315: ldc           #183                // float 12.0f
+     317: invokevirtual #57                 // Method com/itextpdf/layout/element/Paragraph.setFontSize:(F)Lcom/itextpdf/layout/IPropertyContainer;
+     320: checkcast     #37                 // class com/itextpdf/layout/element/Paragraph
+     323: iconst_1
+     324: invokevirtual #139                // Method com/itextpdf/layout/element/Paragraph.setKeepWithNext:(Z)Lcom/itextpdf/layout/element/IElement;
+     327: checkcast     #154                // class com/itextpdf/layout/element/IBlockElement
+     330: invokevirtual #156                // Method com/itextpdf/layout/Document.add:(Lcom/itextpdf/layout/element/IBlockElement;)Lcom/itextpdf/layout/Document;
+     333: pop
+     334: aload_0
+     335: aload_1
+     336: getstatic     #262                // Field TREND_CHART_IMAGES:[Ljava/lang/String;
+     339: iload         7
+     341: getstatic     #262                // Field TREND_CHART_IMAGES:[Ljava/lang/String;
+     344: arraylength
+     345: irem
+     346: aaload
+     347: invokevirtual #161                // Method addImage:(Lcom/itextpdf/layout/Document;Ljava/lang/String;)V
+     350: aload_0
+     351: aload_1
+     352: ldc           #188                // String Source: Primary Interviews, Surveys, Secondary Sources, In-house & Paid External Databases, Spherical Insights, 2026.
+     354: invokevirtual #190                // Method sourceParagraph:(Lcom/itextpdf/layout/Document;Ljava/lang/String;)V
+     357: aload_1
+     358: new           #37                 // class com/itextpdf/layout/element/Paragraph
+     361: dup
+     362: ldc           #193                // String Note: Charts are for illustration purposes.
+     364: invokespecial #43                 // Method com/itextpdf/layout/element/Paragraph."<init>":(Ljava/lang/String;)V
+     367: aload_0
+     368: getfield      #7                  // Field themeRenderer:Lcom/sample_generator/sample/pdf/ThemeRenderer;
+     371: invokevirtual #150                // Method com/sample_generator/sample/pdf/ThemeRenderer.regular:()Lcom/itextpdf/kernel/font/PdfFont;
+     374: invokevirtual #52                 // Method com/itextpdf/layout/element/Paragraph.setFont:(Lcom/itextpdf/kernel/font/PdfFont;)Lcom/itextpdf/layout/IPropertyContainer;
+     377: checkcast     #37                 // class com/itextpdf/layout/element/Paragraph
+     380: ldc           #195                // float 9.0f
+     382: invokevirtual #57                 // Method com/itextpdf/layout/element/Paragraph.setFontSize:(F)Lcom/itextpdf/layout/IPropertyContainer;
+     385: checkcast     #154                // class com/itextpdf/layout/element/IBlockElement
+     388: invokevirtual #156                // Method com/itextpdf/layout/Document.add:(Lcom/itextpdf/layout/element/IBlockElement;)Lcom/itextpdf/layout/Document;
+     391: pop
+     392: iinc          10, 1
+     395: goto          39
+     398: return
+
+  private java.util.List<java.lang.String> childNames(java.util.List<com.sample_generator.sample.Entity.MarketSegment>);
+    Code:
+       0: new           #209                // class java/util/ArrayList
+       3: dup
+       4: invokespecial #211                // Method java/util/ArrayList."<init>":()V
+       7: astore_2
+       8: aload_1
+       9: ifnonnull     14
+      12: aload_2
+      13: areturn
+      14: aload_1
+      15: invokeinterface #75,  1           // InterfaceMethod java/util/List.iterator:()Ljava/util/Iterator;
+      20: astore_3
+      21: aload_3
+      22: invokeinterface #81,  1           // InterfaceMethod java/util/Iterator.hasNext:()Z
+      27: ifeq          80
+      30: aload_3
+      31: invokeinterface #87,  1           // InterfaceMethod java/util/Iterator.next:()Ljava/lang/Object;
+      36: checkcast     #91                 // class com/sample_generator/sample/Entity/MarketSegment
+      39: astore        4
+      41: aload         4
+      43: ifnull        77
+      46: aload         4
+      48: invokevirtual #93                 // Method com/sample_generator/sample/Entity/MarketSegment.getSegmentName:()Ljava/lang/String;
+      51: ifnull        77
+      54: aload         4
+      56: invokevirtual #93                 // Method com/sample_generator/sample/Entity/MarketSegment.getSegmentName:()Ljava/lang/String;
+      59: invokevirtual #96                 // Method java/lang/String.isBlank:()Z
+      62: ifne          77
+      65: aload_2
+      66: aload         4
+      68: invokevirtual #93                 // Method com/sample_generator/sample/Entity/MarketSegment.getSegmentName:()Ljava/lang/String;
+      71: invokeinterface #212,  2          // InterfaceMethod java/util/List.add:(Ljava/lang/Object;)Z
+      76: pop
+      77: goto          21
+      80: aload_2
+      81: areturn
+
+  private java.util.List<java.lang.String> defaultRegionNames();
+    Code:
+       0: iconst_5
+       1: anewarray     #97                 // class java/lang/String
+       4: dup
+       5: iconst_0
+       6: ldc_w         #265                // String North America
+       9: aastore
+      10: dup
+      11: iconst_1
+      12: ldc_w         #267                // String Europe
+      15: aastore
+      16: dup
+      17: iconst_2
+      18: ldc_w         #269                // String Asia Pacific
+      21: aastore
+      22: dup
+      23: iconst_3
+      24: ldc_w         #271                // String Latin America
+      27: aastore
+      28: dup
+      29: iconst_4
+      30: ldc_w         #273                // String The Middle-East and Africa
+      33: aastore
+      34: invokestatic  #275                // Method java/util/Arrays.asList:([Ljava/lang/Object;)Ljava/util/List;
+      37: areturn
+
+  private void addCompactRegionTable(com.itextpdf.layout.Document, com.sample_generator.sample.Entity.SampleReport, java.lang.String, java.util.List<java.lang.String>) throws java.io.IOException;
+    Code:
+       0: aload_0
+       1: aload_2
+       2: invokevirtual #281                // Method historicYear:(Lcom/sample_generator/sample/Entity/SampleReport;)I
+       5: istore        5
+       7: aload_2
+       8: invokevirtual #124                // Method com/sample_generator/sample/Entity/SampleReport.getBaseYear:()I
+      11: istore        6
+      13: aload_2
+      14: invokevirtual #128                // Method com/sample_generator/sample/Entity/SampleReport.getForecastYear:()I
+      17: istore        7
+      19: aload_1
+      20: new           #37                 // class com/itextpdf/layout/element/Paragraph
+      23: dup
+      24: aload_2
+      25: invokevirtual #31                 // Method com/sample_generator/sample/Entity/SampleReport.getKeyName:()Ljava/lang/String;
+      28: invokedynamic #285,  0            // InvokeDynamic #21:makeConcatWithConstants:(Ljava/lang/String;)Ljava/lang/String;
+      33: invokespecial #43                 // Method com/itextpdf/layout/element/Paragraph."<init>":(Ljava/lang/String;)V
+      36: aload_0
+      37: getfield      #7                  // Field themeRenderer:Lcom/sample_generator/sample/pdf/ThemeRenderer;
+      40: invokevirtual #46                 // Method com/sample_generator/sample/pdf/ThemeRenderer.bold:()Lcom/itextpdf/kernel/font/PdfFont;
+      43: invokevirtual #52                 // Method com/itextpdf/layout/element/Paragraph.setFont:(Lcom/itextpdf/kernel/font/PdfFont;)Lcom/itextpdf/layout/IPropertyContainer;
+      46: checkcast     #37                 // class com/itextpdf/layout/element/Paragraph
+      49: ldc           #183                // float 12.0f
+      51: invokevirtual #57                 // Method com/itextpdf/layout/element/Paragraph.setFontSize:(F)Lcom/itextpdf/layout/IPropertyContainer;
+      54: checkcast     #37                 // class com/itextpdf/layout/element/Paragraph
+      57: iconst_1
+      58: invokevirtual #139                // Method com/itextpdf/layout/element/Paragraph.setKeepWithNext:(Z)Lcom/itextpdf/layout/element/IElement;
+      61: checkcast     #154                // class com/itextpdf/layout/element/IBlockElement
+      64: invokevirtual #156                // Method com/itextpdf/layout/Document.add:(Lcom/itextpdf/layout/element/IBlockElement;)Lcom/itextpdf/layout/Document;
+      67: pop
+      68: new           #286                // class com/itextpdf/layout/element/Table
+      71: dup
+      72: iconst_4
+      73: newarray       float
+      75: dup
+      76: iconst_0
+      77: ldc_w         #288                // float 40.0f
+      80: fastore
+      81: dup
+      82: iconst_1
+      83: ldc_w         #289                // float 20.0f
+      86: fastore
+      87: dup
+      88: iconst_2
+      89: ldc_w         #289                // float 20.0f
+      92: fastore
+      93: dup
+      94: iconst_3
+      95: ldc_w         #289                // float 20.0f
+      98: fastore
+      99: invokestatic  #290                // Method com/itextpdf/layout/properties/UnitValue.createPercentArray:([F)[Lcom/itextpdf/layout/properties/UnitValue;
+     102: invokespecial #296                // Method com/itextpdf/layout/element/Table."<init>":([Lcom/itextpdf/layout/properties/UnitValue;)V
+     105: invokevirtual #299                // Method com/itextpdf/layout/element/Table.useAllAvailableWidth:()Lcom/itextpdf/layout/element/Table;
+     108: astore        8
+     110: aload_0
+     111: aload         8
+     113: aload_3
+     114: iload         5
+     116: invokestatic  #101                // Method java/lang/String.valueOf:(I)Ljava/lang/String;
+     119: iload         6
+     121: invokestatic  #101                // Method java/lang/String.valueOf:(I)Ljava/lang/String;
+     124: iload         7
+     126: invokestatic  #101                // Method java/lang/String.valueOf:(I)Ljava/lang/String;
+     129: invokevirtual #303                // Method addSegmentTableHeaderRow:(Lcom/itextpdf/layout/element/Table;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+     132: aload         4
+     134: invokeinterface #75,  1           // InterfaceMethod java/util/List.iterator:()Ljava/util/Iterator;
+     139: astore        9
+     141: aload         9
+     143: invokeinterface #81,  1           // InterfaceMethod java/util/Iterator.hasNext:()Z
+     148: ifeq          198
+     151: aload         9
+     153: invokeinterface #87,  1           // InterfaceMethod java/util/Iterator.next:()Ljava/lang/Object;
+     158: checkcast     #97                 // class java/lang/String
+     161: astore        10
+     163: aload_0
+     164: aload         8
+     166: aload         10
+     168: ldc_w         #307                // String xx
+     171: ldc_w         #307                // String xx
+     174: ldc_w         #307                // String xx
+     177: invokevirtual #309                // Method addSegmentTableValueRow:(Lcom/itextpdf/layout/element/Table;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+     180: aload_0
+     181: aload         8
+     183: ldc_w         #312                // String xx%
+     186: ldc_w         #312                // String xx%
+     189: ldc_w         #312                // String xx%
+     192: invokevirtual #314                // Method addSegmentTableGrowthRow:(Lcom/itextpdf/layout/element/Table;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+     195: goto          141
+     198: aload_0
+     199: aload         8
+     201: ldc_w         #318                // String Total
+     204: ldc_w         #307                // String xx
+     207: ldc_w         #307                // String xx
+     210: ldc_w         #307                // String xx
+     213: invokevirtual #309                // Method addSegmentTableValueRow:(Lcom/itextpdf/layout/element/Table;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+     216: aload_1
+     217: aload         8
+     219: invokevirtual #156                // Method com/itextpdf/layout/Document.add:(Lcom/itextpdf/layout/element/IBlockElement;)Lcom/itextpdf/layout/Document;
+     222: pop
+     223: return
+
+  private void addWideValueTable(com.itextpdf.layout.Document, com.sample_generator.sample.Entity.SampleReport, java.lang.String, java.util.List<java.lang.String>) throws java.io.IOException;
+    Code:
+       0: aload_0
+       1: aload_2
+       2: invokevirtual #281                // Method historicYear:(Lcom/sample_generator/sample/Entity/SampleReport;)I
+       5: istore        5
+       7: aload_2
+       8: invokevirtual #128                // Method com/sample_generator/sample/Entity/SampleReport.getForecastYear:()I
+      11: istore        6
+      13: new           #209                // class java/util/ArrayList
+      16: dup
+      17: invokespecial #211                // Method java/util/ArrayList."<init>":()V
+      20: astore        7
+      22: iload         5
+      24: istore        8
+      26: iload         8
+      28: iload         6
+      30: if_icmpgt     52
+      33: aload         7
+      35: iload         8
+      37: invokestatic  #101                // Method java/lang/String.valueOf:(I)Ljava/lang/String;
+      40: invokeinterface #212,  2          // InterfaceMethod java/util/List.add:(Ljava/lang/Object;)Z
+      45: pop
+      46: iinc          8, 1
+      49: goto          26
+      52: aload         7
+      54: invokeinterface #320,  1          // InterfaceMethod java/util/List.size:()I
+      59: istore        8
+      61: iload         8
+      63: iconst_2
+      64: iadd
+      65: newarray       float
+      67: astore        9
+      69: aload         9
+      71: iconst_0
+      72: ldc           #56                 // float 22.0f
+      74: fastore
+      75: aload         9
+      77: iload         8
+      79: iconst_1
+      80: iadd
+      81: ldc           #222                // float 14.0f
+      83: fastore
+      84: ldc_w         #323                // float 64.0f
+      87: iload         8
+      89: i2f
+      90: fdiv
+      91: fstore        10
+      93: iconst_1
+      94: istore        11
+      96: iload         11
+      98: iload         8
+     100: if_icmpgt     116
+     103: aload         9
+     105: iload         11
+     107: fload         10
+     109: fastore
+     110: iinc          11, 1
+     113: goto          96
+     116: new           #286                // class com/itextpdf/layout/element/Table
+     119: dup
+     120: aload         9
+     122: invokestatic  #290                // Method com/itextpdf/layout/properties/UnitValue.createPercentArray:([F)[Lcom/itextpdf/layout/properties/UnitValue;
+     125: invokespecial #296                // Method com/itextpdf/layout/element/Table."<init>":([Lcom/itextpdf/layout/properties/UnitValue;)V
+     128: invokevirtual #299                // Method com/itextpdf/layout/element/Table.useAllAvailableWidth:()Lcom/itextpdf/layout/element/Table;
+     131: astore        11
+     133: aload         11
+     135: aload_0
+     136: aload_3
+     137: new           #324                // class com/itextpdf/kernel/colors/DeviceRgb
+     140: dup
+     141: iconst_0
+     142: bipush        32
+     144: bipush        96
+     146: invokespecial #326                // Method com/itextpdf/kernel/colors/DeviceRgb."<init>":(III)V
+     149: invokevirtual #329                // Method segmentHeaderCell:(Ljava/lang/String;Lcom/itextpdf/kernel/colors/DeviceRgb;)Lcom/itextpdf/layout/element/Cell;
+     152: invokevirtual #333                // Method com/itextpdf/layout/element/Table.addHeaderCell:(Lcom/itextpdf/layout/element/Cell;)Lcom/itextpdf/layout/element/Table;
+     155: pop
+     156: aload         7
+     158: invokeinterface #75,  1           // InterfaceMethod java/util/List.iterator:()Ljava/util/Iterator;
+     163: astore        12
+     165: aload         12
+     167: invokeinterface #81,  1           // InterfaceMethod java/util/Iterator.hasNext:()Z
+     172: ifeq          214
+     175: aload         12
+     177: invokeinterface #87,  1           // InterfaceMethod java/util/Iterator.next:()Ljava/lang/Object;
+     182: checkcast     #97                 // class java/lang/String
+     185: astore        13
+     187: aload         11
+     189: aload_0
+     190: aload         13
+     192: new           #324                // class com/itextpdf/kernel/colors/DeviceRgb
+     195: dup
+     196: iconst_0
+     197: bipush        32
+     199: bipush        96
+     201: invokespecial #326                // Method com/itextpdf/kernel/colors/DeviceRgb."<init>":(III)V
+     204: invokevirtual #329                // Method segmentHeaderCell:(Ljava/lang/String;Lcom/itextpdf/kernel/colors/DeviceRgb;)Lcom/itextpdf/layout/element/Cell;
+     207: invokevirtual #333                // Method com/itextpdf/layout/element/Table.addHeaderCell:(Lcom/itextpdf/layout/element/Cell;)Lcom/itextpdf/layout/element/Table;
+     210: pop
+     211: goto          165
+     214: aload         11
+     216: aload_0
+     217: aload_2
+     218: invokevirtual #124                // Method com/sample_generator/sample/Entity/SampleReport.getBaseYear:()I
+     221: iload         6
+     223: invokedynamic #337,  0            // InvokeDynamic #22:makeConcatWithConstants:(II)Ljava/lang/String;
+     228: new           #324                // class com/itextpdf/kernel/colors/DeviceRgb
+     231: dup
+     232: iconst_0
+     233: bipush        32
+     235: bipush        96
+     237: invokespecial #326                // Method com/itextpdf/kernel/colors/DeviceRgb."<init>":(III)V
+     240: invokevirtual #329                // Method segmentHeaderCell:(Ljava/lang/String;Lcom/itextpdf/kernel/colors/DeviceRgb;)Lcom/itextpdf/layout/element/Cell;
+     243: invokevirtual #333                // Method com/itextpdf/layout/element/Table.addHeaderCell:(Lcom/itextpdf/layout/element/Cell;)Lcom/itextpdf/layout/element/Table;
+     246: pop
+     247: aload         4
+     249: ifnull        312
+     252: aload         4
+     254: invokeinterface #75,  1           // InterfaceMethod java/util/List.iterator:()Ljava/util/Iterator;
+     259: astore        12
+     261: aload         12
+     263: invokeinterface #81,  1           // InterfaceMethod java/util/Iterator.hasNext:()Z
+     268: ifeq          312
+     271: aload         12
+     273: invokeinterface #87,  1           // InterfaceMethod java/util/Iterator.next:()Ljava/lang/Object;
+     278: checkcast     #97                 // class java/lang/String
+     281: astore        13
+     283: aload         13
+     285: ifnull        261
+     288: aload         13
+     290: invokevirtual #96                 // Method java/lang/String.isBlank:()Z
+     293: ifeq          299
+     296: goto          261
+     299: aload_0
+     300: aload         11
+     302: aload         13
+     304: iload         8
+     306: invokevirtual #338                // Method addWideTableDataRow:(Lcom/itextpdf/layout/element/Table;Ljava/lang/String;I)V
+     309: goto          261
+     312: aload_0
+     313: aload         11
+     315: ldc_w         #318                // String Total
+     318: iload         8
+     320: invokevirtual #338                // Method addWideTableDataRow:(Lcom/itextpdf/layout/element/Table;Ljava/lang/String;I)V
+     323: aload_1
+     324: aload         11
+     326: invokevirtual #156                // Method com/itextpdf/layout/Document.add:(Lcom/itextpdf/layout/element/IBlockElement;)Lcom/itextpdf/layout/Document;
+     329: pop
+     330: return
+
+  private void addWideTableDataRow(com.itextpdf.layout.element.Table, java.lang.String, int) throws java.io.IOException;
+    Code:
+       0: aload_1
+       1: new           #342                // class com/itextpdf/layout/element/Cell
+       4: dup
+       5: invokespecial #344                // Method com/itextpdf/layout/element/Cell."<init>":()V
+       8: new           #37                 // class com/itextpdf/layout/element/Paragraph
+      11: dup
+      12: aload_2
+      13: invokespecial #43                 // Method com/itextpdf/layout/element/Paragraph."<init>":(Ljava/lang/String;)V
+      16: aload_0
+      17: getfield      #7                  // Field themeRenderer:Lcom/sample_generator/sample/pdf/ThemeRenderer;
+      20: invokevirtual #46                 // Method com/sample_generator/sample/pdf/ThemeRenderer.bold:()Lcom/itextpdf/kernel/font/PdfFont;
+      23: invokevirtual #52                 // Method com/itextpdf/layout/element/Paragraph.setFont:(Lcom/itextpdf/kernel/font/PdfFont;)Lcom/itextpdf/layout/IPropertyContainer;
+      26: checkcast     #37                 // class com/itextpdf/layout/element/Paragraph
+      29: ldc_w         #345                // float 10.0f
+      32: invokevirtual #57                 // Method com/itextpdf/layout/element/Paragraph.setFontSize:(F)Lcom/itextpdf/layout/IPropertyContainer;
+      35: checkcast     #37                 // class com/itextpdf/layout/element/Paragraph
+      38: fconst_0
+      39: invokevirtual #346                // Method com/itextpdf/layout/element/Paragraph.setMargin:(F)Lcom/itextpdf/layout/element/IElement;
+      42: checkcast     #154                // class com/itextpdf/layout/element/IBlockElement
+      45: invokevirtual #350                // Method com/itextpdf/layout/element/Cell.add:(Lcom/itextpdf/layout/element/IBlockElement;)Lcom/itextpdf/layout/element/Cell;
+      48: invokevirtual #353                // Method com/itextpdf/layout/element/Table.addCell:(Lcom/itextpdf/layout/element/Cell;)Lcom/itextpdf/layout/element/Table;
+      51: pop
+      52: iconst_0
+      53: istore        4
+      55: iload         4
+      57: iload_3
+      58: if_icmpge     79
+      61: aload_1
+      62: aload_0
+      63: ldc_w         #307                // String xx
+      66: invokevirtual #356                // Method segmentValueCell:(Ljava/lang/String;)Lcom/itextpdf/layout/element/Cell;
+      69: invokevirtual #353                // Method com/itextpdf/layout/element/Table.addCell:(Lcom/itextpdf/layout/element/Cell;)Lcom/itextpdf/layout/element/Table;
+      72: pop
+      73: iinc          4, 1
+      76: goto          55
+      79: aload_1
+      80: aload_0
+      81: ldc_w         #312                // String xx%
+      84: invokevirtual #356                // Method segmentValueCell:(Ljava/lang/String;)Lcom/itextpdf/layout/element/Cell;
+      87: invokevirtual #353                // Method com/itextpdf/layout/element/Table.addCell:(Lcom/itextpdf/layout/element/Cell;)Lcom/itextpdf/layout/element/Table;
+      90: pop
+      91: return
+
+  private void addSegmentTableHeaderRow(com.itextpdf.layout.element.Table, java.lang.String, java.lang.String, java.lang.String, java.lang.String) throws java.io.IOException;
+    Code:
+       0: new           #324                // class com/itextpdf/kernel/colors/DeviceRgb
+       3: dup
+       4: iconst_0
+       5: bipush        32
+       7: bipush        96
+       9: invokespecial #326                // Method com/itextpdf/kernel/colors/DeviceRgb."<init>":(III)V
+      12: astore        6
+      14: aload_1
+      15: aload_0
+      16: aload_2
+      17: aload         6
+      19: invokevirtual #329                // Method segmentHeaderCell:(Ljava/lang/String;Lcom/itextpdf/kernel/colors/DeviceRgb;)Lcom/itextpdf/layout/element/Cell;
+      22: invokevirtual #353                // Method com/itextpdf/layout/element/Table.addCell:(Lcom/itextpdf/layout/element/Cell;)Lcom/itextpdf/layout/element/Table;
+      25: pop
+      26: aload_1
+      27: aload_0
+      28: aload_3
+      29: aload         6
+      31: invokevirtual #329                // Method segmentHeaderCell:(Ljava/lang/String;Lcom/itextpdf/kernel/colors/DeviceRgb;)Lcom/itextpdf/layout/element/Cell;
+      34: invokevirtual #353                // Method com/itextpdf/layout/element/Table.addCell:(Lcom/itextpdf/layout/element/Cell;)Lcom/itextpdf/layout/element/Table;
+      37: pop
+      38: aload_1
+      39: aload_0
+      40: aload         4
+      42: aload         6
+      44: invokevirtual #329                // Method segmentHeaderCell:(Ljava/lang/String;Lcom/itextpdf/kernel/colors/DeviceRgb;)Lcom/itextpdf/layout/element/Cell;
+      47: invokevirtual #353                // Method com/itextpdf/layout/element/Table.addCell:(Lcom/itextpdf/layout/element/Cell;)Lcom/itextpdf/layout/element/Table;
+      50: pop
+      51: aload_1
+      52: aload_0
+      53: aload         5
+      55: aload         6
+      57: invokevirtual #329                // Method segmentHeaderCell:(Ljava/lang/String;Lcom/itextpdf/kernel/colors/DeviceRgb;)Lcom/itextpdf/layout/element/Cell;
+      60: invokevirtual #353                // Method com/itextpdf/layout/element/Table.addCell:(Lcom/itextpdf/layout/element/Cell;)Lcom/itextpdf/layout/element/Table;
+      63: pop
+      64: return
+
+  private void addSegmentTableValueRow(com.itextpdf.layout.element.Table, java.lang.String, java.lang.String, java.lang.String, java.lang.String) throws java.io.IOException;
+    Code:
+       0: aload_1
+       1: new           #342                // class com/itextpdf/layout/element/Cell
+       4: dup
+       5: invokespecial #344                // Method com/itextpdf/layout/element/Cell."<init>":()V
+       8: new           #37                 // class com/itextpdf/layout/element/Paragraph
+      11: dup
+      12: aload_2
+      13: invokespecial #43                 // Method com/itextpdf/layout/element/Paragraph."<init>":(Ljava/lang/String;)V
+      16: aload_0
+      17: getfield      #7                  // Field themeRenderer:Lcom/sample_generator/sample/pdf/ThemeRenderer;
+      20: invokevirtual #46                 // Method com/sample_generator/sample/pdf/ThemeRenderer.bold:()Lcom/itextpdf/kernel/font/PdfFont;
+      23: invokevirtual #52                 // Method com/itextpdf/layout/element/Paragraph.setFont:(Lcom/itextpdf/kernel/font/PdfFont;)Lcom/itextpdf/layout/IPropertyContainer;
+      26: checkcast     #37                 // class com/itextpdf/layout/element/Paragraph
+      29: ldc_w         #345                // float 10.0f
+      32: invokevirtual #57                 // Method com/itextpdf/layout/element/Paragraph.setFontSize:(F)Lcom/itextpdf/layout/IPropertyContainer;
+      35: checkcast     #37                 // class com/itextpdf/layout/element/Paragraph
+      38: fconst_0
+      39: invokevirtual #346                // Method com/itextpdf/layout/element/Paragraph.setMargin:(F)Lcom/itextpdf/layout/element/IElement;
+      42: checkcast     #154                // class com/itextpdf/layout/element/IBlockElement
+      45: invokevirtual #350                // Method com/itextpdf/layout/element/Cell.add:(Lcom/itextpdf/layout/element/IBlockElement;)Lcom/itextpdf/layout/element/Cell;
+      48: invokevirtual #353                // Method com/itextpdf/layout/element/Table.addCell:(Lcom/itextpdf/layout/element/Cell;)Lcom/itextpdf/layout/element/Table;
+      51: pop
+      52: aload_1
+      53: aload_0
+      54: aload_3
+      55: invokevirtual #356                // Method segmentValueCell:(Ljava/lang/String;)Lcom/itextpdf/layout/element/Cell;
+      58: invokevirtual #353                // Method com/itextpdf/layout/element/Table.addCell:(Lcom/itextpdf/layout/element/Cell;)Lcom/itextpdf/layout/element/Table;
+      61: pop
+      62: aload_1
+      63: aload_0
+      64: aload         4
+      66: invokevirtual #356                // Method segmentValueCell:(Ljava/lang/String;)Lcom/itextpdf/layout/element/Cell;
+      69: invokevirtual #353                // Method com/itextpdf/layout/element/Table.addCell:(Lcom/itextpdf/layout/element/Cell;)Lcom/itextpdf/layout/element/Table;
+      72: pop
+      73: aload_1
+      74: aload_0
+      75: aload         5
+      77: invokevirtual #356                // Method segmentValueCell:(Ljava/lang/String;)Lcom/itextpdf/layout/element/Cell;
+      80: invokevirtual #353                // Method com/itextpdf/layout/element/Table.addCell:(Lcom/itextpdf/layout/element/Cell;)Lcom/itextpdf/layout/element/Table;
+      83: pop
+      84: return
+
+  private void addSegmentTableGrowthRow(com.itextpdf.layout.element.Table, java.lang.String, java.lang.String, java.lang.String) throws java.io.IOException;
+    Code:
+       0: aload_1
+       1: new           #342                // class com/itextpdf/layout/element/Cell
+       4: dup
+       5: invokespecial #344                // Method com/itextpdf/layout/element/Cell."<init>":()V
+       8: new           #37                 // class com/itextpdf/layout/element/Paragraph
+      11: dup
+      12: ldc_w         #360                // String Growth Rate
+      15: invokespecial #43                 // Method com/itextpdf/layout/element/Paragraph."<init>":(Ljava/lang/String;)V
+      18: aload_0
+      19: getfield      #7                  // Field themeRenderer:Lcom/sample_generator/sample/pdf/ThemeRenderer;
+      22: invokevirtual #150                // Method com/sample_generator/sample/pdf/ThemeRenderer.regular:()Lcom/itextpdf/kernel/font/PdfFont;
+      25: invokevirtual #52                 // Method com/itextpdf/layout/element/Paragraph.setFont:(Lcom/itextpdf/kernel/font/PdfFont;)Lcom/itextpdf/layout/IPropertyContainer;
+      28: checkcast     #37                 // class com/itextpdf/layout/element/Paragraph
+      31: ldc_w         #345                // float 10.0f
+      34: invokevirtual #57                 // Method com/itextpdf/layout/element/Paragraph.setFontSize:(F)Lcom/itextpdf/layout/IPropertyContainer;
+      37: checkcast     #37                 // class com/itextpdf/layout/element/Paragraph
+      40: fconst_0
+      41: invokevirtual #346                // Method com/itextpdf/layout/element/Paragraph.setMargin:(F)Lcom/itextpdf/layout/element/IElement;
+      44: checkcast     #154                // class com/itextpdf/layout/element/IBlockElement
+      47: invokevirtual #350                // Method com/itextpdf/layout/element/Cell.add:(Lcom/itextpdf/layout/element/IBlockElement;)Lcom/itextpdf/layout/element/Cell;
+      50: invokevirtual #353                // Method com/itextpdf/layout/element/Table.addCell:(Lcom/itextpdf/layout/element/Cell;)Lcom/itextpdf/layout/element/Table;
+      53: pop
+      54: aload_1
+      55: aload_0
+      56: aload_2
+      57: invokevirtual #356                // Method segmentValueCell:(Ljava/lang/String;)Lcom/itextpdf/layout/element/Cell;
+      60: invokevirtual #353                // Method com/itextpdf/layout/element/Table.addCell:(Lcom/itextpdf/layout/element/Cell;)Lcom/itextpdf/layout/element/Table;
+      63: pop
+      64: aload_1
+      65: aload_0
+      66: aload_3
+      67: invokevirtual #356                // Method segmentValueCell:(Ljava/lang/String;)Lcom/itextpdf/layout/element/Cell;
+      70: invokevirtual #353                // Method com/itextpdf/layout/element/Table.addCell:(Lcom/itextpdf/layout/element/Cell;)Lcom/itextpdf/layout/element/Table;
+      73: pop
+      74: aload_1
+      75: aload_0
+      76: aload         4
+      78: invokevirtual #356                // Method segmentValueCell:(Ljava/lang/String;)Lcom/itextpdf/layout/element/Cell;
+      81: invokevirtual #353                // Method com/itextpdf/layout/element/Table.addCell:(Lcom/itextpdf/layout/element/Cell;)Lcom/itextpdf/layout/element/Table;
+      84: pop
+      85: return
+
+  private com.itextpdf.layout.element.Cell segmentHeaderCell(java.lang.String, com.itextpdf.kernel.colors.DeviceRgb) throws java.io.IOException;
+    Code:
+       0: new           #342                // class com/itextpdf/layout/element/Cell
+       3: dup
+       4: invokespecial #344                // Method com/itextpdf/layout/element/Cell."<init>":()V
+       7: new           #37                 // class com/itextpdf/layout/element/Paragraph
+      10: dup
+      11: aload_1
+      12: invokespecial #43                 // Method com/itextpdf/layout/element/Paragraph."<init>":(Ljava/lang/String;)V
+      15: aload_0
+      16: getfield      #7                  // Field themeRenderer:Lcom/sample_generator/sample/pdf/ThemeRenderer;
+      19: invokevirtual #46                 // Method com/sample_generator/sample/pdf/ThemeRenderer.bold:()Lcom/itextpdf/kernel/font/PdfFont;
+      22: invokevirtual #52                 // Method com/itextpdf/layout/element/Paragraph.setFont:(Lcom/itextpdf/kernel/font/PdfFont;)Lcom/itextpdf/layout/IPropertyContainer;
+      25: checkcast     #37                 // class com/itextpdf/layout/element/Paragraph
+      28: ldc_w         #345                // float 10.0f
+      31: invokevirtual #57                 // Method com/itextpdf/layout/element/Paragraph.setFontSize:(F)Lcom/itextpdf/layout/IPropertyContainer;
+      34: checkcast     #37                 // class com/itextpdf/layout/element/Paragraph
+      37: getstatic     #362                // Field com/itextpdf/kernel/colors/ColorConstants.WHITE:Lcom/itextpdf/kernel/colors/Color;
+      40: invokevirtual #368                // Method com/itextpdf/layout/element/Paragraph.setFontColor:(Lcom/itextpdf/kernel/colors/Color;)Lcom/itextpdf/layout/IPropertyContainer;
+      43: checkcast     #37                 // class com/itextpdf/layout/element/Paragraph
+      46: getstatic     #372                // Field com/itextpdf/layout/properties/TextAlignment.CENTER:Lcom/itextpdf/layout/properties/TextAlignment;
+      49: invokevirtual #378                // Method com/itextpdf/layout/element/Paragraph.setTextAlignment:(Lcom/itextpdf/layout/properties/TextAlignment;)Lcom/itextpdf/layout/IPropertyContainer;
+      52: checkcast     #37                 // class com/itextpdf/layout/element/Paragraph
+      55: fconst_0
+      56: invokevirtual #346                // Method com/itextpdf/layout/element/Paragraph.setMargin:(F)Lcom/itextpdf/layout/element/IElement;
+      59: checkcast     #154                // class com/itextpdf/layout/element/IBlockElement
+      62: invokevirtual #350                // Method com/itextpdf/layout/element/Cell.add:(Lcom/itextpdf/layout/element/IBlockElement;)Lcom/itextpdf/layout/element/Cell;
+      65: aload_2
+      66: invokevirtual #382                // Method com/itextpdf/layout/element/Cell.setBackgroundColor:(Lcom/itextpdf/kernel/colors/Color;)Lcom/itextpdf/layout/IPropertyContainer;
+      69: checkcast     #342                // class com/itextpdf/layout/element/Cell
+      72: getstatic     #372                // Field com/itextpdf/layout/properties/TextAlignment.CENTER:Lcom/itextpdf/layout/properties/TextAlignment;
+      75: invokevirtual #385                // Method com/itextpdf/layout/element/Cell.setTextAlignment:(Lcom/itextpdf/layout/properties/TextAlignment;)Lcom/itextpdf/layout/IPropertyContainer;
+      78: checkcast     #342                // class com/itextpdf/layout/element/Cell
+      81: areturn
+
+  private com.itextpdf.layout.element.Cell segmentValueCell(java.lang.String) throws java.io.IOException;
+    Code:
+       0: new           #342                // class com/itextpdf/layout/element/Cell
+       3: dup
+       4: invokespecial #344                // Method com/itextpdf/layout/element/Cell."<init>":()V
+       7: new           #37                 // class com/itextpdf/layout/element/Paragraph
+      10: dup
+      11: aload_1
+      12: invokespecial #43                 // Method com/itextpdf/layout/element/Paragraph."<init>":(Ljava/lang/String;)V
+      15: aload_0
+      16: getfield      #7                  // Field themeRenderer:Lcom/sample_generator/sample/pdf/ThemeRenderer;
+      19: invokevirtual #150                // Method com/sample_generator/sample/pdf/ThemeRenderer.regular:()Lcom/itextpdf/kernel/font/PdfFont;
+      22: invokevirtual #52                 // Method com/itextpdf/layout/element/Paragraph.setFont:(Lcom/itextpdf/kernel/font/PdfFont;)Lcom/itextpdf/layout/IPropertyContainer;
+      25: checkcast     #37                 // class com/itextpdf/layout/element/Paragraph
+      28: ldc_w         #345                // float 10.0f
+      31: invokevirtual #57                 // Method com/itextpdf/layout/element/Paragraph.setFontSize:(F)Lcom/itextpdf/layout/IPropertyContainer;
+      34: checkcast     #37                 // class com/itextpdf/layout/element/Paragraph
+      37: getstatic     #372                // Field com/itextpdf/layout/properties/TextAlignment.CENTER:Lcom/itextpdf/layout/properties/TextAlignment;
+      40: invokevirtual #378                // Method com/itextpdf/layout/element/Paragraph.setTextAlignment:(Lcom/itextpdf/layout/properties/TextAlignment;)Lcom/itextpdf/layout/IPropertyContainer;
+      43: checkcast     #37                 // class com/itextpdf/layout/element/Paragraph
+      46: fconst_0
+      47: invokevirtual #346                // Method com/itextpdf/layout/element/Paragraph.setMargin:(F)Lcom/itextpdf/layout/element/IElement;
+      50: checkcast     #154                // class com/itextpdf/layout/element/IBlockElement
+      53: invokevirtual #350                // Method com/itextpdf/layout/element/Cell.add:(Lcom/itextpdf/layout/element/IBlockElement;)Lcom/itextpdf/layout/element/Cell;
+      56: getstatic     #372                // Field com/itextpdf/layout/properties/TextAlignment.CENTER:Lcom/itextpdf/layout/properties/TextAlignment;
+      59: invokevirtual #385                // Method com/itextpdf/layout/element/Cell.setTextAlignment:(Lcom/itextpdf/layout/properties/TextAlignment;)Lcom/itextpdf/layout/IPropertyContainer;
+      62: checkcast     #342                // class com/itextpdf/layout/element/Cell
+      65: areturn
+
+  private java.util.List<java.lang.String> collectLeafSegmentNames(java.util.List<com.sample_generator.sample.Entity.MarketSegment>);
+    Code:
+       0: new           #209                // class java/util/ArrayList
+       3: dup
+       4: invokespecial #211                // Method java/util/ArrayList."<init>":()V
+       7: astore_2
+       8: aload_0
+       9: aload_1
+      10: aload_2
+      11: invokevirtual #386                // Method collectLeafSegmentNamesRecursive:(Ljava/util/List;Ljava/util/List;)V
+      14: aload_2
+      15: invokeinterface #109,  1          // InterfaceMethod java/util/List.isEmpty:()Z
+      20: ifeq          33
+      23: aload_2
+      24: ldc_w         #318                // String Total
+      27: invokeinterface #212,  2          // InterfaceMethod java/util/List.add:(Ljava/lang/Object;)Z
+      32: pop
+      33: aload_2
+      34: areturn
+
+  private void collectLeafSegmentNamesRecursive(java.util.List<com.sample_generator.sample.Entity.MarketSegment>, java.util.List<java.lang.String>);
+    Code:
+       0: aload_1
+       1: ifnonnull     5
+       4: return
+       5: aload_1
+       6: invokeinterface #75,  1           // InterfaceMethod java/util/List.iterator:()Ljava/util/Iterator;
+      11: astore_3
+      12: aload_3
+      13: invokeinterface #81,  1           // InterfaceMethod java/util/Iterator.hasNext:()Z
+      18: ifeq          106
+      21: aload_3
+      22: invokeinterface #87,  1           // InterfaceMethod java/util/Iterator.next:()Ljava/lang/Object;
+      27: checkcast     #91                 // class com/sample_generator/sample/Entity/MarketSegment
+      30: astore        4
+      32: aload         4
+      34: ifnull        12
+      37: aload         4
+      39: invokevirtual #93                 // Method com/sample_generator/sample/Entity/MarketSegment.getSegmentName:()Ljava/lang/String;
+      42: ifnull        12
+      45: aload         4
+      47: invokevirtual #93                 // Method com/sample_generator/sample/Entity/MarketSegment.getSegmentName:()Ljava/lang/String;
+      50: invokevirtual #96                 // Method java/lang/String.isBlank:()Z
+      53: ifeq          59
+      56: goto          12
+      59: aload         4
+      61: invokevirtual #226                // Method com/sample_generator/sample/Entity/MarketSegment.getChildren:()Ljava/util/List;
+      64: astore        5
+      66: aload         5
+      68: ifnull        81
+      71: aload         5
+      73: invokeinterface #109,  1          // InterfaceMethod java/util/List.isEmpty:()Z
+      78: ifeq          96
+      81: aload_2
+      82: aload         4
+      84: invokevirtual #93                 // Method com/sample_generator/sample/Entity/MarketSegment.getSegmentName:()Ljava/lang/String;
+      87: invokeinterface #212,  2          // InterfaceMethod java/util/List.add:(Ljava/lang/Object;)Z
+      92: pop
+      93: goto          103
+      96: aload_0
+      97: aload         5
+      99: aload_2
+     100: invokevirtual #386                // Method collectLeafSegmentNamesRecursive:(Ljava/util/List;Ljava/util/List;)V
+     103: goto          12
+     106: return
+
+  private void addImage(com.itextpdf.layout.Document, java.lang.String) throws java.io.IOException;
+    Code:
+       0: new           #390                // class org/springframework/core/io/ClassPathResource
+       3: dup
+       4: aload_2
+       5: invokespecial #392                // Method org/springframework/core/io/ClassPathResource."<init>":(Ljava/lang/String;)V
+       8: astore_3
+       9: aload_3
+      10: invokevirtual #393                // Method org/springframework/core/io/ClassPathResource.getInputStream:()Ljava/io/InputStream;
+      13: invokevirtual #397                // Method java/io/InputStream.readAllBytes:()[B
+      16: invokestatic  #403                // Method com/itextpdf/io/image/ImageDataFactory.create:([B)Lcom/itextpdf/io/image/ImageData;
+      19: astore        4
+      21: new           #409                // class com/itextpdf/layout/element/Image
+      24: dup
+      25: aload         4
+      27: invokespecial #411                // Method com/itextpdf/layout/element/Image."<init>":(Lcom/itextpdf/io/image/ImageData;)V
+      30: astore        5
+      32: aload         5
+      34: ldc_w         #414                // float 500.0f
+      37: ldc_w         #415                // float 300.0f
+      40: invokevirtual #416                // Method com/itextpdf/layout/element/Image.scaleToFit:(FF)Lcom/itextpdf/layout/element/Image;
+      43: pop
+      44: aload         5
+      46: iconst_1
+      47: invokevirtual #420                // Method com/itextpdf/layout/element/Image.setAutoScale:(Z)Lcom/itextpdf/layout/element/Image;
+      50: pop
+      51: aload_1
+      52: aload         5
+      54: invokevirtual #424                // Method com/itextpdf/layout/Document.add:(Lcom/itextpdf/layout/element/Image;)Lcom/itextpdf/layout/IPropertyContainer;
+      57: pop
+      58: return
+
+  private void sourceParagraph(com.itextpdf.layout.Document, java.lang.String) throws java.io.IOException;
+    Code:
+       0: aload_1
+       1: new           #37                 // class com/itextpdf/layout/element/Paragraph
+       4: dup
+       5: aload_2
+       6: invokespecial #43                 // Method com/itextpdf/layout/element/Paragraph."<init>":(Ljava/lang/String;)V
+       9: aload_0
+      10: getfield      #7                  // Field themeRenderer:Lcom/sample_generator/sample/pdf/ThemeRenderer;
+      13: invokevirtual #150                // Method com/sample_generator/sample/pdf/ThemeRenderer.regular:()Lcom/itextpdf/kernel/font/PdfFont;
+      16: invokevirtual #52                 // Method com/itextpdf/layout/element/Paragraph.setFont:(Lcom/itextpdf/kernel/font/PdfFont;)Lcom/itextpdf/layout/IPropertyContainer;
+      19: checkcast     #37                 // class com/itextpdf/layout/element/Paragraph
+      22: ldc           #195                // float 9.0f
+      24: invokevirtual #57                 // Method com/itextpdf/layout/element/Paragraph.setFontSize:(F)Lcom/itextpdf/layout/IPropertyContainer;
+      27: checkcast     #154                // class com/itextpdf/layout/element/IBlockElement
+      30: invokevirtual #156                // Method com/itextpdf/layout/Document.add:(Lcom/itextpdf/layout/element/IBlockElement;)Lcom/itextpdf/layout/Document;
+      33: pop
+      34: return
+
+  private java.lang.String yearSpan(com.sample_generator.sample.Entity.SampleReport);
+    Code:
+       0: aload_0
+       1: aload_1
+       2: invokevirtual #281                // Method historicYear:(Lcom/sample_generator/sample/Entity/SampleReport;)I
+       5: aload_1
+       6: invokevirtual #128                // Method com/sample_generator/sample/Entity/SampleReport.getForecastYear:()I
+       9: invokedynamic #427,  0            // InvokeDynamic #23:makeConcatWithConstants:(II)Ljava/lang/String;
+      14: areturn
+
+  private int historicYear(com.sample_generator.sample.Entity.SampleReport);
+    Code:
+       0: aload_1
+       1: invokevirtual #428                // Method com/sample_generator/sample/Entity/SampleReport.getHistoricYear:()Ljava/lang/Integer;
+       4: ifnull        17
+       7: aload_1
+       8: invokevirtual #428                // Method com/sample_generator/sample/Entity/SampleReport.getHistoricYear:()Ljava/lang/Integer;
+      11: invokevirtual #432                // Method java/lang/Integer.intValue:()I
+      14: goto          21
+      17: aload_1
+      18: invokevirtual #124                // Method com/sample_generator/sample/Entity/SampleReport.getBaseYear:()I
+      21: ireturn
+
+  static {};
+    Code:
+       0: iconst_3
+       1: anewarray     #97                 // class java/lang/String
+       4: dup
+       5: iconst_0
+       6: ldc_w         #437                // String assets/images/Graph_year.jpg
+       9: aastore
+      10: dup
+      11: iconst_1
+      12: ldc_w         #439                // String assets/images/fig4.png
+      15: aastore
+      16: dup
+      17: iconst_2
+      18: ldc_w         #441                // String assets/images/Graph2.png
+      21: aastore
+      22: putstatic     #184                // Field SHARE_CHART_IMAGES:[Ljava/lang/String;
+      25: iconst_3
+      26: anewarray     #97                 // class java/lang/String
+      29: dup
+      30: iconst_0
+      31: ldc_w         #443                // String assets/images/fig2.jpg
+      34: aastore
+      35: dup
+      36: iconst_1
+      37: ldc_w         #437                // String assets/images/Graph_year.jpg
+      40: aastore
+      41: dup
+      42: iconst_2
+      43: ldc_w         #445                // String assets/images/fig3.jpg
+      46: aastore
+      47: putstatic     #262                // Field TREND_CHART_IMAGES:[Ljava/lang/String;
+      50: return
+}
