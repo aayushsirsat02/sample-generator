@@ -233,78 +233,89 @@ public class PdfRenderer {
 
     private void addCoverPage(Document document, SampleReport report) throws IOException {
 
-        ClassPathResource resource =
-                new ClassPathResource("assets/images/cover.png");
-
-        ImageData imageData =
-                ImageDataFactory.create(resource.getInputStream().readAllBytes());
-
+        ClassPathResource resource = new ClassPathResource("assets/images/cover.png");
+        ImageData imageData = ImageDataFactory.create(resource.getInputStream().readAllBytes());
         Image coverImage = new Image(imageData);
 
         PageSize pageSize = PageSize.A4.rotate();
         float pageWidth = pageSize.getWidth();
         float pageHeight = pageSize.getHeight();
 
-        // Full-bleed cover (matches servlet golden PDF); scaleAbsolute avoids partial-page fit.
+        // Full-bleed cover
         coverImage.scaleAbsolute(pageWidth, pageHeight);
         coverImage.setFixedPosition(1, 0f, 0f);
 
-        // Golden cover overlays: left 70, title ~y=118 / subtitle ~y=86 from bottom (SemiBold).
-        float left = 70f;
+        float left = 60f;
         float textWidth = pageWidth - (left * 2);
-        com.itextpdf.kernel.colors.Color coverNavy =
-                new com.itextpdf.kernel.colors.DeviceRgb(27, 58, 92);
-        com.itextpdf.kernel.colors.Color coverMuted =
-                new com.itextpdf.kernel.colors.DeviceRgb(90, 98, 110);
 
-        Paragraph title = new Paragraph(report.getKeyName())
-                .setFont(themeRenderer.semiBold())
-                .setFontSize(35)
-                .setFontColor(coverNavy)
-                .setMargin(0)
-                .setMultipliedLeading(1.05f);
-        title.setFixedPosition(left, 118f, textWidth);
+        com.itextpdf.kernel.colors.Color coverNavy = new com.itextpdf.kernel.colors.DeviceRgb(27, 58, 92);
+        com.itextpdf.kernel.colors.Color coverMuted = new com.itextpdf.kernel.colors.DeviceRgb(90, 98, 110);
 
-        Paragraph subtitle = new Paragraph("Forecast to " + report.getForecastYear())
-                .setFont(themeRenderer.semiBold())
-                .setFontSize(27)
-                .setFontColor(coverNavy)
-                .setMargin(0);
-        subtitle.setFixedPosition(left, 86f, textWidth);
+        String keyName = report.getKeyName() != null ? report.getKeyName() : "";
 
-        String category = report.getCategory();
-        Paragraph categoryLine = null;
-        if (category != null && !category.isBlank()) {
-            categoryLine = new Paragraph(category.trim().toUpperCase())
-                    .setFont(themeRenderer.semiBold())
-                    .setFontSize(13)
-                    .setFontColor(coverMuted)
-                    .setMargin(0);
-            categoryLine.setFixedPosition(left, 165f, textWidth);
+        // 1. DYNAMIC FONT SIZE CALCULATION (Auto-adjusts based on text length)
+        float titleFontSize = 32f; // Default for normal titles
+        if (keyName.length() > 90) {
+            titleFontSize = 20f;
+        } else if (keyName.length() > 65) {
+            titleFontSize = 24f;
+        } else if (keyName.length() > 40) {
+            titleFontSize = 28f;
         }
 
-        Paragraph dateLine = null;
+        // 2. CONTAINER DIV (Positioned at bottom left of cover)
+        // Using a Div prevents overlapping between Category, Title, Subtitle, and Date
+        Div container = new Div();
+        container.setFixedPosition(1, left, 50f, textWidth); // x=70, y=50 from bottom
+
+
+
+        // Main Title Line
+        Paragraph title = new Paragraph(keyName)
+                .setFont(themeRenderer.semiBold())
+                .setFontSize(titleFontSize) // Dynamic font size applied here
+                .setFontColor(coverNavy)
+                .setMargin(0)
+                .setMarginBottom(6f)
+                .setMultipliedLeading(1.05f);
+        container.add(title);
+
+        // Subtitle Line
+        Paragraph subtitle = new Paragraph("Forecast to " + report.getForecastYear())
+                .setFont(themeRenderer.semiBold())
+                .setFontSize(22)
+                .setFontColor(coverNavy)
+                .setMargin(0)
+                .setMarginBottom(8f);
+        container.add(subtitle);
+
+        // Date Line
         if (report.getCreatedAt() != null) {
             String published = report.getCreatedAt()
                     .format(java.time.format.DateTimeFormatter.ofPattern("MMMM yyyy"));
-            dateLine = new Paragraph(published)
+            Paragraph dateLine = new Paragraph(published)
                     .setFont(themeRenderer.regular())
                     .setFontSize(11)
                     .setFontColor(coverMuted)
                     .setMargin(0);
-            dateLine.setFixedPosition(left, 55f, textWidth);
+            container.add(dateLine);
         }
 
+        // Category Line (Above Title)
+        String category = report.getCategory();
+        if (category != null && !category.isBlank()) {
+            Paragraph categoryLine = new Paragraph("Category: "+category.trim().toUpperCase())
+                    .setFont(themeRenderer.semiBold())
+                    .setFontSize(12)
+                    .setFontColor(coverMuted)
+                    .setMargin(0)
+                    .setMarginBottom(4f);
+            container.add(categoryLine);
+        }
+
+        // Render cover background first, then the text container on top
         document.add(coverImage);
-
-        if (categoryLine != null) {
-            document.add(categoryLine);
-        }
-        document.add(title);
-        document.add(subtitle);
-        if (dateLine != null) {
-            document.add(dateLine);
-        }
+        document.add(container);
     }
     private void addReportSummary(Document document, SampleReport report) throws IOException {
 
@@ -1486,28 +1497,127 @@ public class PdfRenderer {
         sourceParagraph(document, report, reportPlaceholderSource());
 
         document.add(new AreaBreak());
+        // Reuse the existing symbolFont variable already declared at the top of addResearchMethodology
+// (If not initialized yet, just do: symbolFont = PdfFontFactory.createFont(com.itextpdf.io.font.constants.StandardFonts.ZAPFDINGBATS);)
+
+// --- 11.3.2 Primary Research ---
         Paragraph primaryHeading = new Paragraph(chapter + ".3.2 Primary Research")
                 .setFont(themeRenderer.semiBold())
                 .setFontSize(12);
         BodyFigureLayout.breakBeforeNumberedHeading(document, primaryHeading);
         document.add(primaryHeading);
-        document.add(new Paragraph(
-                "We conduct primary interviews on an ongoing basis with industry participants and commentators in order to validate data and analysis. A typical"+
-                "research interview fulfills the following functions:")
-                .setFont(themeRenderer.regular())
-                .setFontSize(11));
 
+        document.add(new Paragraph(
+                "We conduct primary interviews on an ongoing basis with industry participants and commentators in order to validate data and analysis. "
+                        + "A typical research interview fulfills the following functions:")
+                .setFont(themeRenderer.bold())
+                .setFontSize(10)
+                .setMarginBottom(6f));
+
+// Primary Research Bullet List 1
+        List<String> primaryFunctions = Arrays.asList(
+                "It provides first-hand information on the market size, market trends, growth trends, competitive landscape, future outlook etc.",
+                "Helps in validating and strengthening the secondary research findings",
+                "Further develops the analysis team’s expertise and market understanding",
+                "Primary research involves E-mail interactions, telephonic interviews as well as face-to-face interviews for each market, category, segment and sub-segment across geographies"
+        );
+
+        for (String item : primaryFunctions) {
+            Paragraph p = new Paragraph()
+                    .setFontSize(11)
+                    .setMarginLeft(12)
+                    .setMarginBottom(3f);
+
+            Text diamond = new Text("u  ")
+                    .setFont(symbolFont)
+                    .setFontColor(BodyFigureLayout.NUMBERED_SECTION_HEADING_COLOR);
+
+            Text content = new Text(item)
+                    .setFont(themeRenderer.regular())
+                    .setFontColor(ColorConstants.BLACK);
+
+            p.add(diamond).add(content);
+            document.add(p);
+        }
+
+        document.add(new Paragraph(
+                "The participants who typically take part in such a power rating include, but are not limited to:")
+                .setFont(themeRenderer.bold())
+                .setFontSize(10)
+                .setMarginTop(6f)
+                .setMarginBottom(6f));
+
+// Primary Research Bullet List 2 (Participants)
+        List<String> participants = Arrays.asList(
+                "Industry participants: CEOs, VPs, marketing/ type managers, market intelligence managers and national sales managers",
+                "Purchasing managers, technical personnel, distributors and resellers",
+                "Outside experts: Investment bankers, valuation experts, research analysts specializing in specific markets",
+                "Key opinion leaders specializing in different areas corresponding to different industry applications"
+        );
+
+        for (String item : participants) {
+            Paragraph p = new Paragraph()
+                    .setFontSize(11)
+                    .setMarginLeft(12)
+                    .setMarginBottom(3f);
+
+            Text diamond = new Text("u  ")
+                    .setFont(symbolFont)
+                    .setFontColor(BodyFigureLayout.NUMBERED_SECTION_HEADING_COLOR);
+
+            Text content = new Text(item)
+                    .setFont(themeRenderer.regular())
+                    .setFontColor(ColorConstants.BLACK);
+
+            p.add(diamond).add(content);
+            document.add(p);
+        }
+
+
+// --- 11.3.3 Statistical Models ---
         Paragraph statisticalHeading = new Paragraph(chapter + ".3.3 Statistical Models")
                 .setFont(themeRenderer.semiBold())
-                .setFontSize(12);
+                .setFontSize(12)
+                .setMarginTop(10f);
         BodyFigureLayout.breakBeforeNumberedHeading(document, statisticalHeading);
         document.add(statisticalHeading);
+
         document.add(new Paragraph(
                 "Where no hard data is available, we use modeling and estimates in order to produce comprehensive data sets. "
-                        + "A rigorous methodology is adopted in which the available hard data is cross referenced with demographic data, "
-                        + "macro-economic indicators, and industry indicators. Data is then cross checked by the expert panel.")
-                .setFont(themeRenderer.regular())
-                .setFontSize(11));
+                        + "A rigorous methodology is adopted in which the available hard data is cross referenced with the following data types to produce estimates:")
+                .setFont(themeRenderer.bold())
+                .setFontSize(10)
+                .setMarginBottom(6f));
+
+// Statistical Models Bullet List
+        List<String> dataTypes = Arrays.asList(
+                "Demographic data: Population split by segment",
+                "Macro-economic indicators: GDP, etc.",
+                "Industry indicators: Expenditure, Product stage & infrastructure, sector growth and facilities."
+        );
+
+        for (String item : dataTypes) {
+            Paragraph p = new Paragraph()
+                    .setFontSize(11)
+                    .setMarginLeft(12)
+                    .setMarginBottom(3f);
+
+            Text diamond = new Text("u  ")
+                    .setFont(symbolFont)
+                    .setFontColor(BodyFigureLayout.NUMBERED_SECTION_HEADING_COLOR);
+
+            Text content = new Text(item)
+                    .setFont(themeRenderer.regular())
+                    .setFontColor(ColorConstants.BLACK);
+
+            p.add(diamond).add(content);
+            document.add(p);
+        }
+
+        document.add(new Paragraph("Data is then cross checked by the expert panel.")
+                .setFont(themeRenderer.bold())
+                .setFontSize(10)
+                .setMarginTop(6f));
 
         document.add(new AreaBreak());
         Paragraph companyShareHeading = new Paragraph(chapter + ".3.3.1 Company Share Analysis Model")
@@ -1522,17 +1632,23 @@ public class PdfRenderer {
                 .setFontSize(11));
         document.add(BodyFigureLayout.figureCaptionUnnumbered(
                 themeRenderer, "FIGURE  ", "Company Share Analysis Model"));
-        addImageToPages(document, report, "assets/images/img_18.png");
+        BodyFigureLayout.addClasspathFigureWithMaxHeight(document,"assets/images/img_16.png", 220f);
 
         document.add(new AreaBreak());
         Paragraph revenueModelHeading = new Paragraph(chapter + ".3.3.2 Revenue Based Modelling")
                 .setFont(themeRenderer.semiBold())
                 .setFontSize(12);
+
+
+
         BodyFigureLayout.breakBeforeNumberedHeading(document, revenueModelHeading);
         document.add(revenueModelHeading);
+        document.add(new Paragraph("Revenue based models can be built in two ways Top-Down or Bottom-Up irrespective of industry. Market size estimated from company share" +
+                        "analysis acts as a validation point for bottom-up approach where as it acts as starting point for top-down approach.")).setFont(themeRenderer.regular())
+                .setFontSize(10);
         document.add(BodyFigureLayout.figureCaptionUnnumbered(
                 themeRenderer, "FIGURE  ", "Revenue Based Modeling"));
-        addImageToPages(document, report, "assets/images/Graph_year.jpg");
+        BodyFigureLayout.addClasspathFigureWithMaxHeight(document,"assets/images/img_17.png", 260f);
 
         document.add(new AreaBreak());
         Paragraph limitationsHeading = new Paragraph(chapter + ".3.4 Research Limitations")

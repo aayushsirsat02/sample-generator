@@ -137,8 +137,7 @@ public final class BodyFigureLayout {
             throws IOException {
         Paragraph caption = new Paragraph()
                 .setMarginTop(0)
-                .setMarginBottom(CAPTION_BOTTOM_MARGIN_PT)
-                .setKeepWithNext(true);
+                .setMarginBottom(CAPTION_BOTTOM_MARGIN_PT);
         caption.add(new Text(figureLabel)
                 .setFont(theme.semiBold())
                 .setFontSize(FIGURE_CAPTION_SIZE_PT)
