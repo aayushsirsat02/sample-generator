@@ -7,6 +7,8 @@ import com.sample_generator.sample.Entity.User;
 import com.sample_generator.sample.dto.*;
 import com.sample_generator.sample.repository.SampleReportRepository;
 import com.sample_generator.sample.repository.UserRepository;
+import com.sample_generator.sample.pdf.PdfGenerationService;
+import com.sample_generator.sample.pdf.MeasurementLabels;
 import com.sample_generator.sample.service.SampleReportService;
 import com.sample_generator.sample.service.ReportConfigService;
 import org.springframework.stereotype.Service;
@@ -25,20 +27,24 @@ public class SampleReportServiceImpl implements SampleReportService {
 
         private final ReportConfigService reportConfigService;
 
-        private static final DateTimeFormatter DISPLAY_FORMATTER = DateTimeFormatter.ofPattern("dd MMM yyyy, HH:mm");
+        private final PdfGenerationService pdfGenerationService;
+
+        private static final DateTimeFormatter DISPLAY_FORMATTER =
+                        DateTimeFormatter.ofPattern("dd MMM yyyy, HH:mm");
 
         public SampleReportServiceImpl(SampleReportRepository sampleReportRepository,
-                        UserRepository userRepository, ReportConfigService reportConfigService) {
+                        UserRepository userRepository, ReportConfigService reportConfigService,
+                        PdfGenerationService pdfGenerationService) {
 
                 this.sampleReportRepository = sampleReportRepository;
 
                 this.userRepository = userRepository;
                 this.reportConfigService = reportConfigService;
+                this.pdfGenerationService = pdfGenerationService;
         }
 
         /*
-         * ================================================ GET MY REPORTS (current
-         * user)
+         * ================================================ GET MY REPORTS (current user)
          * ================================================
          */
 
@@ -118,7 +124,18 @@ public class SampleReportServiceImpl implements SampleReportService {
 
                 report.setValueVolume(request.getValueVolume());
 
-                report.setUnit(request.getUnit());
+                if (request.getMeasurementType() != null && !request.getMeasurementType().isBlank()) {
+                        report.setValueVolume(request.getMeasurementType());
+                }
+
+                if (request.getUnit() != null && !request.getUnit().isBlank()
+                                && !isMeasurementScale(request.getUnit())) {
+                        report.setUnit(request.getUnit());
+                } else {
+                        String currency = firstNonBlank(request.getCurrency(), "USD");
+                        String scale = firstNonBlank(request.getMeasurementUnit(), "Million");
+                        report.setUnit(currency + " " + scale);
+                }
 
                 report.setLanguage(request.getLanguage());
 
@@ -182,7 +199,10 @@ public class SampleReportServiceImpl implements SampleReportService {
                 SampleReport savedReport = sampleReportRepository.save(report);
 
                 reportConfigService.initializeNewReportConfig(savedReport);
+                applyMeasurementSettings(savedReport, request, true);
                 sampleReportRepository.save(savedReport);
+
+                pdfGenerationService.requestGeneration(savedReport.getId());
 
                 return savedReport.getId();
         }
@@ -230,7 +250,7 @@ public class SampleReportServiceImpl implements SampleReportService {
                         report.setScopeName(request.getScopeName());
                 if (request.getValueVolume() != null)
                         report.setValueVolume(request.getValueVolume());
-                if (request.getUnit() != null)
+                if (request.getUnit() != null && !isMeasurementScale(request.getUnit()))
                         report.setUnit(request.getUnit());
                 if (request.getLanguage() != null)
                         report.setLanguage(request.getLanguage());
@@ -284,6 +304,8 @@ public class SampleReportServiceImpl implements SampleReportService {
                 }
 
                 SampleReport savedReport = sampleReportRepository.save(report);
+                applyMeasurementSettings(savedReport, request, false);
+                pdfGenerationService.requestGeneration(savedReport.getId());
 
                 return savedReport.getId();
         }
@@ -291,6 +313,23 @@ public class SampleReportServiceImpl implements SampleReportService {
         /*
          * RECURSIVE SEGMENT CREATION
          */
+
+        @Override
+        @Transactional
+        public void deleteSampleReport(Long reportId, String username, boolean isAdmin) {
+
+                SampleReport report = sampleReportRepository.findById(reportId).orElseThrow(
+                                () -> new RuntimeException("Report not found: " + reportId));
+
+                if (!isAdmin && report.getCreatedBy() != null
+                                && !username.equals(report.getCreatedBy().getUsername())) {
+                        throw new RuntimeException("You are not authorized to delete this report: "
+                                        + reportId);
+                }
+
+                sampleReportRepository.delete(report);
+                pdfGenerationService.discardCachedPdf(reportId);
+        }
 
         private MarketSegment createSegment(SegmentRequest request, SampleReport report,
                         MarketSegment parent) {
@@ -345,6 +384,12 @@ public class SampleReportServiceImpl implements SampleReportService {
 
                 response.setUnit(report.getUnit());
 
+                response.setMeasurementType(MeasurementLabels.getMeasurementType(report));
+
+                response.setCurrency(MeasurementLabels.getCurrency(report));
+
+                response.setMeasurementUnit(MeasurementLabels.getUnit(report));
+
                 response.setLanguage(report.getLanguage());
 
                 response.setHistoricYear(report.getHistoricYear());
@@ -358,6 +403,10 @@ public class SampleReportServiceImpl implements SampleReportService {
                 response.setMarketValueForecastYear(report.getMarketValueForecastYear());
 
                 response.setCategory(report.getCategory());
+
+                response.setCagr(
+                        report.getCagr()
+                );
 
                 // Read-only info panel fields
                 if (report.getCreatedAt() != null) {
@@ -459,6 +508,41 @@ public class SampleReportServiceImpl implements SampleReportService {
                 dto.setChildren(children);
 
                 return dto;
+        }
+
+        private void applyMeasurementSettings(
+                        SampleReport report,
+                        CreateSampleReportRequest request,
+                        boolean syncOriginal) {
+                String measurementType = firstNonBlank(
+                                request.getMeasurementType(),
+                                request.getValueVolume());
+                String currency = request.getCurrency();
+                String unit = firstNonBlank(
+                                request.getMeasurementUnit(),
+                                isMeasurementScale(request.getUnit()) ? request.getUnit() : null);
+                reportConfigService.mergeMeasurementSettings(report, measurementType, currency, unit);
+                if (syncOriginal) {
+                        reportConfigService.syncOriginalConfigWithWorking(report);
+                }
+        }
+
+        private static boolean isMeasurementScale(String unit) {
+                return unit != null
+                                && ("Million".equalsIgnoreCase(unit.trim())
+                                                || "Billion".equalsIgnoreCase(unit.trim()));
+        }
+
+        private static String firstNonBlank(String... values) {
+                if (values == null) {
+                        return null;
+                }
+                for (String value : values) {
+                        if (value != null && !value.isBlank()) {
+                                return value;
+                        }
+                }
+                return null;
         }
 
 }

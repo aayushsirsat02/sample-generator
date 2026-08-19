@@ -11,6 +11,14 @@
 const csrfToken = document.querySelector('meta[name="_csrf"]').getAttribute('content');
 const csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
 
+const REGIONAL_COUNTRIES = {
+    "North America": ["U.S.", "Canada", "Mexico"],
+    "Europe": ["Germany", "France", "UK", "Italy", "Spain", "Rest of Europe"],
+    "Asia Pacific": ["China", "Japan", "India", "South Korea", "Australia", "Rest of APAC"],
+    "South America": ["Brazil", "Argentina", "Rest of South America"],
+    "MEA": ["GCC Countries", "South Africa", "Rest of MEA"]
+};
+
 // Will hold user info from /api/user/me
 let currentUser = {
     username: "",
@@ -32,6 +40,9 @@ document.addEventListener("DOMContentLoaded", function () {
             loadDashboardRecentReports();
         }
     });
+
+    bindCustomizationInputs();
+    initRegionalScopeUi();
 
 });
 
@@ -209,8 +220,8 @@ async function loadDashboardRecentReports() {
                             <button class="btn-action btn-action-edit" onclick="openReportForEdit(${report.id})" title="Edit">
                                 <i class="fa-solid fa-pen"></i>
                             </button>
-                            <button class="btn-action btn-action-word" onclick="downloadWordReport(${report.id})" title="Download Word">
-                                <i class="fa-solid fa-file-word"></i>
+                            <button class="btn-action btn-action-word" onclick="downloadPdfReport(${report.id}, this)" title="Download Pdf">
+                                <i class="fa-solid fa-file-pdf"></i>
                             </button>
                         </div>
                     </td>
@@ -221,6 +232,72 @@ async function loadDashboardRecentReports() {
         }
     } catch (e) {
         console.error("Error loading recent", e);
+    }
+}
+
+
+// Import a sample report from a public URL and open it in the edit UI
+async function importReportFromUrl() {
+    const urlInput = document.getElementById('importReportUrl');
+    const statusEl = document.getElementById('importReportStatus');
+    const btn = document.getElementById('fetchReportBtn');
+
+    if (!urlInput) return;
+    const url = urlInput.value.trim();
+    if (!url) {
+        statusEl.textContent = 'Please enter a report URL.';
+        return;
+    }
+
+    const originalBtnHtml = btn ? btn.innerHTML : null;
+    try {
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Fetching...';
+        }
+        statusEl.textContent = '';
+
+        const response = await fetch('/api/sample-reports/import-url', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                [csrfHeader]: csrfToken
+            },
+            body: JSON.stringify({ url: url })
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            // Support both { sampleReportId: 123 } and plain numeric responses
+            const importedId = (data && (data.sampleReportId || data.id)) || data || null;
+            if (importedId) {
+                statusEl.style.color = 'green';
+                statusEl.textContent = 'Import successful — opening report...';
+                // Open edit UI and load the imported report
+                showSection('edit-sample');
+                // small delay to ensure panel transitions
+                setTimeout(() => editReport(importedId), 250);
+                return;
+            } else {
+                statusEl.textContent = 'Import succeeded but no report ID was returned.';
+            }
+        } else {
+            let msg = 'Import failed.';
+            try {
+                const err = await response.json();
+                if (err && err.message) msg = err.message;
+            } catch (e) { }
+            statusEl.textContent = msg;
+        }
+
+    } catch (error) {
+        console.error('Error importing report from URL:', error);
+        statusEl.textContent = 'Network error occurred while importing.';
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            if (originalBtnHtml) btn.innerHTML = originalBtnHtml;
+        }
     }
 }
 
@@ -240,14 +317,23 @@ document.getElementById("createReportForm")
         submitBtn.disabled = true;
 
         try {
+            const scope = document.getElementById("scope").value;
+            const scopeName = resolveScopeName("scope", "scopeName", "regionSelect");
+            if (scope === "Regional" && !scopeName) {
+                alert("Please select a region.");
+                return;
+            }
+
             // Build request object
             const request = {
                 keyId: document.getElementById("keyId").value,
                 keyName: document.getElementById("keyName").value,
-                scope: document.getElementById("scope").value,
-                scopeName: document.getElementById("scopeName").value,
+                scope: scope,
+                scopeName: scopeName,
                 valueVolume: document.getElementById("valueVolume").value,
-                unit: document.getElementById("unit").value,
+                measurementType: document.getElementById("valueVolume").value,
+                currency: document.getElementById("currency").value,
+                measurementUnit: document.getElementById("unit").value,
                 language: document.getElementById("language").value,
                 historicYear: document.getElementById("historicYear").value ? parseInt(document.getElementById("historicYear").value) : null,
                 baseYear: document.getElementById("baseYear").value ? parseInt(document.getElementById("baseYear").value) : null,
@@ -296,6 +382,7 @@ function resetReportForm() {
     document.getElementById("createReportForm").reset();
     document.getElementById("segmentsContainer").innerHTML = "";
     document.getElementById("companiesContainer").innerHTML = "";
+    syncRegionalScopeUi("scope", "scopeNameGroup", "regionalSection", "regionSelect", "regionCountries");
 }
 
 // Data extraction helpers for Create
@@ -359,11 +446,11 @@ function createSegmentNode() {
 
     segmentNode.innerHTML = `
         <div class="segment-row">
-            <input type="text" class="segment-input form-control" placeholder="Segment Name">
-            <button type="button" class="btn-icon-green" onclick="addSubsegment(this)" title="Add Subsegment">
+            <input type="text" class="segment-input form-control" placeholder="Segment name">
+            <button type="button" class="btn-icon-green" onclick="addSubsegment(this)" title="Add Subsegment" aria-label="Add Subsegment">
                 <i class="fa-solid fa-plus"></i>
             </button>
-            <button type="button" class="btn-icon-red" onclick="removeSegment(this)" title="Remove">
+            <button type="button" class="btn-icon-red" onclick="removeSegment(this)" title="Remove Segment" aria-label="Remove Segment">
                 <i class="fa-solid fa-trash"></i>
             </button>
         </div>
@@ -385,11 +472,12 @@ window.removeSegment = function (button) {
 function addCompany() {
     const container = document.getElementById("companiesContainer");
     const companyRow = document.createElement("div");
-    companyRow.className = "company-row mb-2 d-flex gap-2";
+    companyRow.className = "company-row";
 
     companyRow.innerHTML = `
-        <input type="text" class="company-input form-control" placeholder="Company Name">
-        <button type="button" class="btn-icon-red" onclick="removeCompany(this)" title="Remove">
+        <i class="fa-regular fa-building company-row-icon" aria-hidden="true"></i>
+        <input type="text" class="company-input form-control" placeholder="Company name">
+        <button type="button" class="btn-icon-red" onclick="removeCompany(this)" title="Remove Company" aria-label="Remove Company">
             <i class="fa-solid fa-trash"></i>
         </button>
     `;
@@ -444,11 +532,12 @@ function displayReportsList(reports, tableBodyElement) {
                     <button class="btn-action btn-action-edit" onclick="editReport(${report.id})" title="Edit / Update">
                         <i class="fa-solid fa-pen"></i> Update
                     </button>
-                    <button class="btn-action btn-action-word" onclick="downloadWordReport(${report.id})" title="Download Word (.docx)">
-                        <i class="fa-solid fa-file-word"></i>
+                    <button class="btn-action btn-action-word" onclick="downloadPdfReport(${report.id}, this)" title="Download Pdf (.pdf)">
+                        <i class="fa-solid fa-file-pdf"></i>
                     </button>
-                    <button class="btn-action btn-action-ppt" onclick="downloadPptReport(${report.id})" title="Download PPT">
-                        <i class="fa-solid fa-file-powerpoint"></i>
+                   
+                    <button class="btn-action btn-action-delete" onclick="deleteReport(${report.id})" title="Delete Report">
+                        <i class="fa-solid fa-trash"></i> Delete
                     </button>
                 </div>
             </td>
@@ -460,6 +549,44 @@ function displayReportsList(reports, tableBodyElement) {
 function openReportForEdit(id) {
     showSection('edit-sample');
     editReport(id);
+}
+
+async function deleteReport(reportId) {
+    const statusEl = document.getElementById('reportActionStatus');
+    statusEl.textContent = '';
+
+    if (!confirm('Are you sure you want to delete this report?')) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/reports/${reportId}`, {
+            method: 'DELETE'
+        });
+
+        if (response.ok) {
+            statusEl.textContent = 'Report deleted successfully.';
+            statusEl.style.color = 'var(--brand-success)';
+            loadMyReports();
+            loadDashboardStats();
+            loadDashboardRecentReports();
+        } else {
+            let errorMessage = 'Failed to delete report.';
+            try {
+                const errorData = await response.json();
+                if (errorData.message) {
+                    errorMessage = errorData.message;
+                }
+            } catch (e) {
+            }
+            statusEl.textContent = errorMessage;
+            statusEl.style.color = 'var(--brand-danger)';
+        }
+    } catch (error) {
+        console.error('Error deleting report:', error);
+        statusEl.textContent = 'Network error occurred while deleting report.';
+        statusEl.style.color = 'var(--brand-danger)';
+    }
 }
 
 
@@ -480,6 +607,7 @@ async function editReport(reportId) {
         if (response.ok) {
             const report = await response.json();
             populateEditForm(report);
+            loadReportCustomization(reportId);
 
             document.getElementById('editReportLoading').style.display = 'none';
             document.getElementById('editReportContent').style.display = 'flex';
@@ -501,9 +629,98 @@ function closeEditReport() {
     // Clear forms to be clean for next time
     document.getElementById("editSegmentsContainer").innerHTML = "";
     document.getElementById("editCompaniesContainer").innerHTML = "";
+    currentReportConfig = null;
 
     // Refresh the list to show any updates
     loadMyReports();
+}
+
+function initRegionalScopeUi() {
+    fillRegionSelect("regionSelect");
+    fillRegionSelect("editRegionSelect");
+
+    const createScope = document.getElementById("scope");
+    const editScope = document.getElementById("editScope");
+    const regionSelect = document.getElementById("regionSelect");
+    const editRegionSelect = document.getElementById("editRegionSelect");
+
+    if (createScope) {
+        createScope.addEventListener("change", function () {
+            syncRegionalScopeUi("scope", "scopeNameGroup", "regionalSection", "regionSelect", "regionCountries");
+        });
+    }
+    if (editScope) {
+        editScope.addEventListener("change", function () {
+            syncRegionalScopeUi("editScope", "editScopeNameGroup", "editRegionalSection", "editRegionSelect", "editRegionCountries");
+        });
+    }
+    if (regionSelect) {
+        regionSelect.addEventListener("change", function () {
+            renderRegionCountries("regionCountries", regionSelect.value);
+        });
+    }
+    if (editRegionSelect) {
+        editRegionSelect.addEventListener("change", function () {
+            renderRegionCountries("editRegionCountries", editRegionSelect.value);
+        });
+    }
+
+    syncRegionalScopeUi("scope", "scopeNameGroup", "regionalSection", "regionSelect", "regionCountries");
+}
+
+function fillRegionSelect(selectId) {
+    const select = document.getElementById(selectId);
+    if (!select) return;
+    const current = select.value;
+    select.innerHTML = '<option value="">Select Region</option>';
+    Object.keys(REGIONAL_COUNTRIES).forEach(region => {
+        const option = document.createElement("option");
+        option.value = region;
+        option.textContent = region;
+        select.appendChild(option);
+    });
+    if (current && REGIONAL_COUNTRIES[current]) {
+        select.value = current;
+    }
+}
+
+function syncRegionalScopeUi(scopeId, scopeNameGroupId, regionalSectionId, regionSelectId, countriesId) {
+    const scopeEl = document.getElementById(scopeId);
+    const scopeNameGroup = document.getElementById(scopeNameGroupId);
+    const regionalSection = document.getElementById(regionalSectionId);
+    const regionSelect = document.getElementById(regionSelectId);
+    const isRegional = scopeEl && scopeEl.value === "Regional";
+
+    if (regionalSection) {
+        regionalSection.hidden = !isRegional;
+    }
+    if (scopeNameGroup) {
+        scopeNameGroup.style.display = isRegional ? "none" : "";
+    }
+    if (isRegional && regionSelect) {
+        renderRegionCountries(countriesId, regionSelect.value);
+    }
+}
+
+function renderRegionCountries(containerId, regionName) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    container.innerHTML = "";
+    const countries = REGIONAL_COUNTRIES[regionName] || [];
+    countries.forEach(country => {
+        const chip = document.createElement("span");
+        chip.className = "region-country-chip";
+        chip.textContent = country;
+        container.appendChild(chip);
+    });
+}
+
+function resolveScopeName(scopeId, scopeNameId, regionSelectId) {
+    const scope = document.getElementById(scopeId).value;
+    if (scope === "Regional") {
+        return document.getElementById(regionSelectId).value;
+    }
+    return document.getElementById(scopeNameId).value;
 }
 
 function populateEditForm(report) {
@@ -515,8 +732,16 @@ function populateEditForm(report) {
     document.getElementById('editKeyName').value = report.keyName || '';
     document.getElementById('editScope').value = report.scope || '';
     document.getElementById('editScopeName').value = report.scopeName || '';
-    document.getElementById('editValueVolume').value = report.valueVolume || '';
-    document.getElementById('editUnit').value = report.unit || '';
+    const editRegionSelect = document.getElementById('editRegionSelect');
+    if (editRegionSelect) {
+        const savedRegion = report.scopeName || '';
+        editRegionSelect.value = REGIONAL_COUNTRIES[savedRegion] ? savedRegion : '';
+        renderRegionCountries('editRegionCountries', editRegionSelect.value);
+    }
+    syncRegionalScopeUi('editScope', 'editScopeNameGroup', 'editRegionalSection', 'editRegionSelect', 'editRegionCountries');
+    document.getElementById('editValueVolume').value = report.measurementType || report.valueVolume || 'Value';
+    document.getElementById('editCurrency').value = report.currency || 'USD';
+    document.getElementById('editUnit').value = report.measurementUnit || 'Million';
     document.getElementById('editLanguage').value = report.language || '';
     document.getElementById('editHistoricYear').value = report.historicYear || '';
     document.getElementById('editBaseYear').value = report.baseYear || '';
@@ -565,13 +790,24 @@ async function updateSampleReport() {
     btn.disabled = true;
 
     try {
+        const scope = document.getElementById("editScope").value;
+        const scopeName = resolveScopeName("editScope", "editScopeName", "editRegionSelect");
+        if (scope === "Regional" && !scopeName) {
+            alert("Please select a region.");
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+            return;
+        }
+
         const request = {
             keyId: document.getElementById("editKeyId").value,
             keyName: document.getElementById("editKeyName").value,
-            scope: document.getElementById("editScope").value,
-            scopeName: document.getElementById("editScopeName").value,
+            scope: scope,
+            scopeName: scopeName,
             valueVolume: document.getElementById("editValueVolume").value,
-            unit: document.getElementById("editUnit").value,
+            measurementType: document.getElementById("editValueVolume").value,
+            currency: document.getElementById("editCurrency").value,
+            measurementUnit: document.getElementById("editUnit").value,
             language: document.getElementById("editLanguage").value,
             historicYear: document.getElementById("editHistoricYear").value ? parseInt(document.getElementById("editHistoricYear").value) : null,
             baseYear: document.getElementById("editBaseYear").value ? parseInt(document.getElementById("editBaseYear").value) : null,
@@ -616,6 +852,246 @@ async function updateSampleReport() {
 
 
 /* ========================================================
+   7b. REPORT CUSTOMIZATION (EDIT VIEW)
+   ======================================================== */
+
+let currentReportConfig = null;
+
+const THEME_COLOR_FIELDS = [
+    { key: 'headerColor', textId: 'editHeaderColor', pickerId: 'editHeaderColorPicker', fallback: '#0070C0' },
+    { key: 'footerColor', textId: 'editFooterColor', pickerId: 'editFooterColorPicker', fallback: '#FFB81C' },
+    { key: 'primaryColor', textId: 'editPrimaryColor', pickerId: 'editPrimaryColorPicker', fallback: '#002060' },
+    { key: 'secondaryColor', textId: 'editSecondaryColor', pickerId: 'editSecondaryColorPicker', fallback: '#2B6CB0' },
+    { key: 'accentColor', textId: 'editAccentColor', pickerId: 'editAccentColorPicker', fallback: '#ECC94B' },
+    { key: 'tableHeaderColor', textId: 'editTableHeaderColor', pickerId: 'editTableHeaderColorPicker', fallback: '#002060' },
+    { key: 'chartPrimaryColor', textId: 'editChartPrimaryColor', pickerId: 'editChartPrimaryColorPicker', fallback: '#002060' },
+    { key: 'chartSecondaryColor', textId: 'editChartSecondaryColor', pickerId: 'editChartSecondaryColorPicker', fallback: '#FFC107' }
+];
+
+function normalizeHexColor(value, fallback) {
+    if (!value) return fallback;
+    let hex = String(value).trim();
+    if (!hex.startsWith('#')) hex = '#' + hex;
+    if (/^#[0-9A-Fa-f]{6}$/.test(hex)) return hex.toUpperCase();
+    if (/^#[0-9A-Fa-f]{3}$/.test(hex)) {
+        return ('#' + hex[1] + hex[1] + hex[2] + hex[2] + hex[3] + hex[3]).toUpperCase();
+    }
+    return fallback;
+}
+
+function setThemeColorField(textId, pickerId, value, fallback) {
+    const hex = normalizeHexColor(value, fallback);
+    const text = document.getElementById(textId);
+    const picker = document.getElementById(pickerId);
+    if (text) text.value = hex;
+    if (picker) picker.value = hex;
+}
+
+function coverImageFromConfig(config) {
+    const theme = config && config.theme ? config.theme : {};
+    const cover = config && config.cover ? config.cover : {};
+    return cover.backgroundImage || theme.coverImage || '';
+}
+
+function previewSrcForCover(path) {
+    if (!path) return '';
+    if (path.startsWith('http://') || path.startsWith('https://') || path.startsWith('/')) {
+        return path;
+    }
+    return '';
+}
+
+function applyCoverPreview(path) {
+    const preview = document.getElementById('editCoverImagePreview');
+    if (!preview) return;
+    const src = previewSrcForCover(path);
+    if (src) {
+        preview.src = src;
+        preview.style.display = 'block';
+    } else {
+        preview.removeAttribute('src');
+        preview.style.display = 'none';
+    }
+}
+
+function populateCustomizationForm(config) {
+    currentReportConfig = config || {};
+    const theme = currentReportConfig.theme || {};
+    const coverPath = coverImageFromConfig(currentReportConfig);
+    document.getElementById('editCoverImage').value = coverPath;
+    applyCoverPreview(coverPath);
+
+    const headerFallback = normalizeHexColor(theme.secondaryColor, '#0070C0');
+    const footerFallback = normalizeHexColor(theme.accentColor, '#FFB81C');
+
+    THEME_COLOR_FIELDS.forEach(field => {
+        let fallback = field.fallback;
+        if (field.key === 'headerColor') fallback = headerFallback;
+        if (field.key === 'footerColor') fallback = footerFallback;
+        setThemeColorField(field.textId, field.pickerId, theme[field.key], fallback);
+    });
+}
+
+async function loadReportCustomization(reportId) {
+    try {
+        const response = await fetch(`/api/reports/${reportId}/export/json`);
+        if (!response.ok) {
+            currentReportConfig = null;
+            return;
+        }
+        populateCustomizationForm(await response.json());
+    } catch (error) {
+        console.error("Error loading report customization:", error);
+    }
+}
+
+function bindCustomizationInputs() {
+    THEME_COLOR_FIELDS.forEach(field => {
+        const text = document.getElementById(field.textId);
+        const picker = document.getElementById(field.pickerId);
+        if (picker) {
+            picker.addEventListener('input', () => {
+                if (text) text.value = picker.value.toUpperCase();
+            });
+        }
+        if (text) {
+            text.addEventListener('change', () => {
+                const hex = normalizeHexColor(text.value, picker ? picker.value : field.fallback);
+                text.value = hex;
+                if (picker) picker.value = hex;
+            });
+        }
+    });
+
+    const coverInput = document.getElementById('editCoverImage');
+    if (coverInput) {
+        coverInput.addEventListener('change', () => applyCoverPreview(coverInput.value));
+    }
+
+    const coverFile = document.getElementById('editCoverImageFile');
+    if (coverFile) {
+        coverFile.addEventListener('change', async () => {
+            if (!coverFile.files || !coverFile.files[0]) return;
+            const formData = new FormData();
+            formData.append('file', coverFile.files[0]);
+            formData.append('category', document.getElementById('editCategory').value || 'General');
+            try {
+                const response = await fetch('/api/assets/upload', {
+                    method: 'POST',
+                    headers: { [csrfHeader]: csrfToken },
+                    body: formData
+                });
+                if (!response.ok) {
+                    alert('Failed to upload cover image.');
+                    return;
+                }
+                const asset = await response.json();
+                if (asset.filePath) {
+                    document.getElementById('editCoverImage').value = asset.filePath;
+                    applyCoverPreview(asset.filePath);
+                }
+            } catch (error) {
+                console.error('Error uploading cover image:', error);
+                alert('An error occurred uploading the cover image.');
+            }
+        });
+    }
+}
+
+function buildCustomizationPayload() {
+    const config = JSON.parse(JSON.stringify(currentReportConfig || {}));
+    if (!config.theme || typeof config.theme !== 'object') {
+        config.theme = {};
+    }
+    if (!config.cover || typeof config.cover !== 'object') {
+        config.cover = {};
+    }
+
+    const coverPath = document.getElementById('editCoverImage').value.trim();
+    config.theme.coverImage = coverPath;
+    config.cover.backgroundImage = coverPath;
+
+    THEME_COLOR_FIELDS.forEach(field => {
+        const text = document.getElementById(field.textId);
+        config.theme[field.key] = normalizeHexColor(text.value, field.fallback);
+    });
+
+    return config;
+}
+
+async function saveReportCustomization() {
+    const reportId = document.getElementById('editingReportId').value;
+    if (!reportId) return;
+
+    const btn = document.getElementById('saveCustomizationButton');
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving...';
+    btn.disabled = true;
+
+    try {
+        if (!currentReportConfig) {
+            const loaded = await fetch(`/api/reports/${reportId}/export/json`);
+            if (!loaded.ok) {
+                alert('Failed to load current report configuration.');
+                return;
+            }
+            currentReportConfig = await loaded.json();
+        }
+
+        const response = await fetch(`/api/reports/${reportId}/export/json`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                [csrfHeader]: csrfToken
+            },
+            body: JSON.stringify(buildCustomizationPayload())
+        });
+        if (response.ok) {
+            populateCustomizationForm(await response.json());
+            alert('Report customization saved.');
+        } else {
+            alert('Failed to save report customization.');
+        }
+    } catch (error) {
+        console.error('Error saving report customization:', error);
+        alert('An error occurred saving customization.');
+    } finally {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    }
+}
+
+async function resetReportCustomization() {
+    const reportId = document.getElementById('editingReportId').value;
+    if (!reportId) return;
+    if (!confirm('Reset customization to the original defaults for this report?')) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/reports/${reportId}/export/json/reset`, {
+            method: 'POST',
+            headers: {
+                [csrfHeader]: csrfToken
+            }
+        });
+        if (response.ok) {
+            populateCustomizationForm(await response.json());
+            alert('Customization reset to default.');
+        } else {
+            alert('Failed to reset customization.');
+        }
+    } catch (error) {
+        console.error('Error resetting report customization:', error);
+        alert('An error occurred resetting customization.');
+    }
+}
+
+window.saveReportCustomization = saveReportCustomization;
+window.resetReportCustomization = resetReportCustomization;
+
+
+/* ========================================================
    8. COMPACT SEGMENTS & COMPANIES (EDIT VIEW)
    ======================================================== */
 
@@ -630,11 +1106,11 @@ function createEditSegmentNode(segment = { segmentName: '', children: [] }) {
 
     segmentNode.innerHTML = `
         <div class="segment-row">
-            <input type="text" class="segment-input form-control" placeholder="Segment Name" value="${escapeHtml(segment.segmentName || '')}">
-            <button type="button" class="btn-icon-green" onclick="addEditSubsegment(this)" title="Add Subsegment">
+            <input type="text" class="segment-input form-control" placeholder="Segment name" value="${escapeHtml(segment.segmentName || '')}">
+            <button type="button" class="btn-icon-green" onclick="addEditSubsegment(this)" title="Add Subsegment" aria-label="Add Subsegment">
                 <i class="fa-solid fa-plus"></i>
             </button>
-            <button type="button" class="btn-icon-red" onclick="removeEditSegment(this)" title="Remove">
+            <button type="button" class="btn-icon-red" onclick="removeEditSegment(this)" title="Remove Segment" aria-label="Remove Segment">
                 <i class="fa-solid fa-trash"></i>
             </button>
         </div>
@@ -700,11 +1176,12 @@ function extractEditSegmentData(node) {
 function addEditCompany(name = '') {
     const container = document.getElementById("editCompaniesContainer");
     const companyRow = document.createElement("div");
-    companyRow.className = "company-row mb-2 d-flex gap-2";
+    companyRow.className = "company-row";
 
     companyRow.innerHTML = `
-        <input type="text" class="company-input form-control" placeholder="Company Name" value="${escapeHtml(name)}">
-        <button type="button" class="btn-icon-red" onclick="removeEditCompany(this)" title="Remove">
+        <i class="fa-regular fa-building company-row-icon" aria-hidden="true"></i>
+        <input type="text" class="company-input form-control" placeholder="Company name" value="${escapeHtml(name)}">
+        <button type="button" class="btn-icon-red" onclick="removeEditCompany(this)" title="Remove Company" aria-label="Remove Company">
             <i class="fa-solid fa-trash"></i>
         </button>
     `;
@@ -775,8 +1252,129 @@ async function searchReport() {
    10. DOWNLOADS
    ======================================================== */
 
-function downloadWordReport(id) {
-    window.location.href = `/api/reports/${id}/word`;
+let pdfDownloadInProgress = false;
+
+async function waitForPdfReady(id) {
+    const started = Date.now();
+    while (Date.now() - started < 180000) {
+        const response = await fetch(`/reports/${id}/pdf-status`);
+        if (!response.ok) {
+            throw new Error(`PDF status check failed: ${response.status}`);
+        }
+        const payload = await response.json();
+        if (payload.status === 'READY') {
+            return;
+        }
+        if (payload.status === 'FAILED') {
+            throw new Error(payload.message || 'PDF generation failed');
+        }
+        await new Promise((resolve) => setTimeout(resolve, 1500));
+    }
+    throw new Error('PDF is still being prepared. Please try again shortly.');
+}
+
+async function downloadPdfReport(id, triggerBtn) {
+    const pdfBtn = triggerBtn || document.getElementById('downloadWordBtn');
+    const pdfIcon = pdfBtn ? pdfBtn.querySelector('i') : document.getElementById('pdfDownloadIcon');
+    const pdfText = pdfBtn ? pdfBtn.querySelector('span') : document.getElementById('pdfDownloadText');
+    const pdfError = document.getElementById('pdfDownloadError');
+    const idleIconClass = pdfIcon ? pdfIcon.className : 'fa-solid fa-file-pdf';
+    const idleText = pdfText ? pdfText.textContent : 'PDF';
+
+    const setPdfButtonVisualLoading = (loading) => {
+        if (!pdfBtn) return;
+        pdfBtn.classList.toggle('loading', loading);
+        pdfBtn.setAttribute('aria-busy', loading ? 'true' : 'false');
+        if (pdfIcon) {
+            pdfIcon.className = loading ? 'fa-solid fa-spinner fa-spin' : idleIconClass;
+        }
+        if (pdfText) {
+            pdfText.textContent = loading ? 'Preparing PDF...' : idleText;
+        }
+    };
+
+    const showPdfError = (message) => {
+        if (!pdfError) return;
+        pdfError.textContent = message;
+        pdfError.hidden = false;
+    };
+
+    const clearPdfError = () => {
+        if (!pdfError) return;
+        pdfError.textContent = '';
+        pdfError.hidden = true;
+    };
+
+    if (!id) {
+        console.error('PDF download failed: no report ID available in the current dashboard state.');
+        showPdfError('No report is selected for PDF download.');
+        return;
+    }
+
+    if (pdfDownloadInProgress) {
+        return;
+    }
+
+    pdfDownloadInProgress = true;
+    clearPdfError();
+
+    // Chromium will not paint innerText/icon changes on the clicked button if
+    // disabled is set in the same turn as the click. Update visuals first.
+    setPdfButtonVisualLoading(true);
+    void (pdfBtn && pdfBtn.offsetWidth);
+    await new Promise((resolve) => requestAnimationFrame(resolve));
+    await new Promise((resolve) => requestAnimationFrame(resolve));
+    if (pdfBtn) {
+        pdfBtn.disabled = true;
+    }
+
+    try {
+        await waitForPdfReady(id);
+        const response = await fetch(`/reports/${id}/download`);
+        if (response.status === 202) {
+            await waitForPdfReady(id);
+            const retry = await fetch(`/reports/${id}/download`);
+            if (!retry.ok) {
+                throw new Error(`PDF download failed: ${retry.status}`);
+            }
+            const blob = await retry.blob();
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `report-${id}.pdf`;
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.URL.revokeObjectURL(url);
+            return;
+        }
+        if (response.status === 503) {
+            const payload = await response.json().catch(() => ({}));
+            throw new Error(payload.message || 'PDF generation failed');
+        }
+        if (!response.ok) {
+            throw new Error(`PDF download failed: ${response.status}`);
+        }
+
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `report-${id}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        window.URL.revokeObjectURL(url);
+    } catch (error) {
+        console.error('PDF download error for report', id, error);
+        showPdfError(error.message || 'Unable to download PDF right now.');
+    } finally {
+        if (pdfBtn) {
+            pdfBtn.disabled = false;
+        }
+        setPdfButtonVisualLoading(false);
+        pdfDownloadInProgress = false;
+    }
 }
 
 async function downloadPptReport(id) {
@@ -790,9 +1388,21 @@ async function downloadPptReport(id) {
 }
 
 // Helpers for the right-side panel buttons
-function downloadWordReportCurrent() {
-    const id = document.getElementById('editingReportId').value;
-    if (id) downloadWordReport(id);
+function downloadPdfReportCurrent() {
+    const idInput = document.getElementById('editingReportId');
+    const id = idInput ? idInput.value : '';
+
+    if (!id) {
+        console.error('PDF download failed: no current report ID found in editingReportId.');
+        const pdfError = document.getElementById('pdfDownloadError');
+        if (pdfError) {
+            pdfError.textContent = 'No report is selected for PDF download.';
+            pdfError.hidden = false;
+        }
+        return;
+    }
+
+    downloadPdfReport(id, document.getElementById('downloadWordBtn'));
 }
 
 function downloadPptReportCurrent() {

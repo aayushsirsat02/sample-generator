@@ -1,6 +1,7 @@
 package com.sample_generator.sample.repository;
 
 import com.sample_generator.sample.Entity.SampleReport;
+import com.sample_generator.sample.pdf.PdfStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
@@ -33,5 +34,7 @@ public interface SampleReportRepository
             String keyId,
             String keyName
     );
+
+    List<SampleReport> findByPdfStatus(PdfStatus pdfStatus);
 
 }

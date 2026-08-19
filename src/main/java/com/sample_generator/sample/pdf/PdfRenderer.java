@@ -12,7 +12,6 @@ import com.sample_generator.sample.pdf.layout.BodyFigureLayout;
 import com.sample_generator.sample.pdf.values.MarketValueSeriesProvider;
 
 import com.itextpdf.io.image.ImageData;
-import com.itextpdf.io.image.ImageDataFactory;
 import com.itextpdf.kernel.events.Event;
 import com.itextpdf.kernel.events.IEventHandler;
 import com.itextpdf.kernel.events.PdfDocumentEvent;
@@ -32,6 +31,7 @@ import com.itextpdf.kernel.pdf.PdfPage;
 import com.itextpdf.kernel.pdf.action.PdfAction;
 import com.itextpdf.kernel.pdf.canvas.PdfCanvas;
 import com.itextpdf.kernel.pdf.navigation.PdfExplicitDestination;
+import com.itextpdf.kernel.pdf.xobject.PdfImageXObject;
 import com.itextpdf.kernel.font.PdfFont;
 
 import com.itextpdf.kernel.pdf.PdfWriter;
@@ -49,6 +49,9 @@ import com.itextpdf.layout.properties.UnitValue;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Arrays;
@@ -57,18 +60,14 @@ import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Component
 public class PdfRenderer {
 
     PdfFont dingbatsFont = PdfFontFactory.createFont("ZapfDingbats");
 
-    // 2. Define your blue color:
-// Custom RGB (e.g., standard blue, royal blue, or dark blue)
-    DeviceRgb blueColor = new DeviceRgb(0, 102, 204);
-
-// Or simply use the preset constant:
-// com.itextpdf.kernel.colors.ColorConstants.BLUE
+    private final ThreadLocal<PdfRenderTheme> activeTheme = new ThreadLocal<>();
 
     private static final float BODY_HORIZONTAL_MARGIN = 70f;
     private static final String LIST_SYMBOL_IMAGE = "assets/images/listSymbol.png";
@@ -97,14 +96,103 @@ public class PdfRenderer {
     }
 
     public byte[] generatePdf(SampleReport report, List<MarketSegment> roots) throws IOException {
-        tocPageByDestination.clear();
-        tocIndexingPass = true;
-        writePdf(new ByteArrayOutputStream(), report, roots);
+        return generatePdf(report, roots, PdfRenderTheme.CURRENT);
+    }
 
-        tocIndexingPass = false;
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        writePdf(outputStream, report, roots);
-        return outputStream.toByteArray();
+    public byte[] generatePdf(
+            SampleReport report,
+            List<MarketSegment> roots,
+            PdfRenderTheme theme) throws IOException {
+
+        PdfRenderTheme resolved =
+                theme != null ? theme : PdfRenderTheme.CURRENT;
+
+        activeTheme.set(resolved);
+
+        try {
+
+            PdfGenTimer.reset();
+            tocPageByDestination.clear();
+
+            // ==========================
+            // FIRST PASS (layout/page map only)
+            // ==========================
+            long start1 = System.currentTimeMillis();
+
+            tocIndexingPass = true;
+            PdfRenderPass.beginTocIndexing();
+            try {
+                writePdf(
+                        new ByteArrayOutputStream(),
+                        report,
+                        roots
+                );
+            } finally {
+                PdfRenderPass.beginFinalPass();
+            }
+
+            long end1 = System.currentTimeMillis();
+            long tocMs = end1 - start1;
+
+            System.out.println(
+                    "TOC PASS: " + tocMs + " ms"
+            );
+            PdfGenTimer.dump("TOC pass");
+            String tocTop = PdfGenTimer.topThreeSummary();
+
+            // ==========================
+            // SECOND PASS
+            // ==========================
+            PdfGenTimer.reset();
+            long start2 = System.currentTimeMillis();
+
+            tocIndexingPass = false;
+            PdfRenderPass.beginFinalPass();
+
+            ByteArrayOutputStream outputStream =
+                    new ByteArrayOutputStream();
+
+            writePdf(
+                    outputStream,
+                    report,
+                    roots
+            );
+
+            long end2 = System.currentTimeMillis();
+            long pdfMs = end2 - start2;
+            byte[] pdfBytes = outputStream.toByteArray();
+
+            System.out.println(
+                    "PDF PASS: " + pdfMs + " ms"
+            );
+            PdfGenTimer.dump("PDF pass");
+            System.out.println(
+                    "TOTAL: " + (tocMs + pdfMs) + " ms"
+            );
+            System.out.println(
+                    "PDF SIZE: " + pdfBytes.length + " bytes"
+            );
+            System.out.println(
+                    "TOP 3 (final pass): " + PdfGenTimer.topThreeSummary()
+            );
+            System.out.println(
+                    "TOP 3 (toc pass): " + tocTop
+            );
+
+            return pdfBytes;
+
+        } finally {
+            tocIndexingPass = false;
+            PdfRenderPass.clear();
+            PdfGenTimer.reset();
+            PdfDocumentImageCache.endDocument();
+            activeTheme.remove();
+        }
+    }
+
+    private PdfRenderTheme theme() {
+        PdfRenderTheme theme = activeTheme.get();
+        return theme != null ? theme : PdfRenderTheme.CURRENT;
     }
 
     private void writePdf(ByteArrayOutputStream outputStream, SampleReport report, List<MarketSegment> roots)
@@ -113,11 +201,19 @@ public class PdfRenderer {
         headerFooterRegisteredDocument = null;
         pagesWithoutHeaderFooter.clear();
         pendingTocDestination = null;
+        PdfDocumentImageCache.beginDocument();
 
-        WriterProperties writerProperties = new WriterProperties()
-                .useSmartMode()
-                .setFullCompressionMode(true)
-                .setCompressionLevel(CompressionConstants.BEST_COMPRESSION);
+        WriterProperties writerProperties;
+        if (tocIndexingPass) {
+            writerProperties = new WriterProperties()
+                    .setCompressionLevel(CompressionConstants.NO_COMPRESSION);
+        } else {
+            // DEFAULT_COMPRESSION (zlib ~6) is much faster than BEST_COMPRESSION (9)
+            // with the same visual content. Smart/full-compression modes are skipped
+            // because repeated images are already reused via PdfDocumentImageCache.
+            writerProperties = new WriterProperties()
+                    .setCompressionLevel(CompressionConstants.DEFAULT_COMPRESSION);
+        }
         PdfWriter writer = new PdfWriter(outputStream, writerProperties);
 
         PdfDocument pdfDocument = new PdfDocument(writer);
@@ -128,102 +224,108 @@ public class PdfRenderer {
 
         document.setMargins(0, 0, 0, 0);
 
-        addCoverPage(document, report);
+        try {
+            PdfGenTimer.time("section.cover", () -> addCoverPage(document, report));
 
-        document.setMargins(
-                80, // Top — clear header band
-                BODY_HORIZONTAL_MARGIN, // Right — align with servlet body band
-                80, // Bottom — clear footer band
-                BODY_HORIZONTAL_MARGIN  // Left — align with servlet body band
-        );
+            document.setMargins(
+                    80, // Top — clear header band
+                    BODY_HORIZONTAL_MARGIN, // Right — align with servlet body band
+                    80, // Bottom — clear footer band
+                    BODY_HORIZONTAL_MARGIN  // Left — align with servlet body band
+            );
 
-        document.add(new AreaBreak());
+            document.add(new AreaBreak());
 
-        addHeaderAndFooter(document, report, 2);
+            addHeaderAndFooter(document, report, 2);
 
-        //addReportSummary(document, report);
-        //document.add(new AreaBreak());
-        addHeaderAndFooter(document, report, 2);
+            //addReportSummary(document, report);
+            //document.add(new AreaBreak());
+            addHeaderAndFooter(document, report, 2);
 
-        addReportSummaryOverview(document, report);
-        document.add(new AreaBreak());
+            PdfGenTimer.time("section.summaryOverview", () -> addReportSummaryOverview(document, report));
+            if (!report.isCountryScope()) {
+                document.add(new AreaBreak());
+                PdfGenTimer.time("section.regionMap", () -> addRegionMapSection(document, report, roots));
+            }
 
-        addRegionMapSection(document, report, roots);
+            PdfGenTimer.time("section.preliminarySegmentation",
+                    () -> addPreliminarySegmentationOverviews(document, report, roots));
+            //document.add(new AreaBreak());
 
-        addPreliminarySegmentationOverviews(document, report, roots);
-        //document.add(new AreaBreak());
+            document.add(new AreaBreak());
 
-//        marketSegmentRenderer.render(
-//                document,
-//                report,
-//                roots
-//        );
+            PdfGenTimer.time("section.companyList", () -> addCompanyList(document, report));
+            document.add(new AreaBreak());
 
-        document.add(new AreaBreak());
+            ReportChapterLayout chapterLayout = ReportChapterLayout.build(report, roots);
+            PdfGenTimer.time("section.tocLists", () -> {
+                addTableOfContents(document, report, chapterLayout);
+                document.add(new AreaBreak());
 
-        addCompanyList(document, report);
-        document.add(new AreaBreak());
+                addListOfFigures(document, report, roots, chapterLayout);
+                document.add(new AreaBreak());
 
-        ReportChapterLayout chapterLayout = ReportChapterLayout.build(report, roots);
-        addTableOfContents(document, report, chapterLayout);
-        document.add(new AreaBreak());
+                addListOfTables(document, report, roots, chapterLayout);
+                document.add(new AreaBreak());
+            });
 
-        addListOfFigures(document, report, roots, chapterLayout);
-        document.add(new AreaBreak());
+            TocSectionRecorder tocRecorder = createTocSectionRecorder();
 
-        addListOfTables(document, report, roots, chapterLayout);
-        document.add(new AreaBreak());
+            pendingTocDestination = chapterLayout.destinationForChapter(chapterLayout.executiveChapter());
+            PdfGenTimer.time("section.executiveSummary", () -> addExecutiveSummary(document, report, roots));
 
-        TocSectionRecorder tocRecorder = createTocSectionRecorder();
+            PdfGenTimer.time("section.marketSegments", () -> marketSegmentRenderer.render(
+                    document,
+                    report,
+                    roots,
+                    chapterLayout.firstSegmentChapter(),
+                    tocRecorder));
 
-        pendingTocDestination = chapterLayout.destinationForChapter(chapterLayout.executiveChapter());
-        addExecutiveSummary(document, report, roots);
+            if (!report.isCountryScope()) {
+                pendingTocDestination = chapterLayout.regionalChapterDestination();
+                PdfGenTimer.time("section.regionalAnalysis", () -> regionalAnalysisRenderer.render(
+                        document,
+                        report,
+                        roots,
+                        chapterLayout.regionalChapter(),
+                        tocRecorder));
+                document.add(new AreaBreak());
+            }
 
-        marketSegmentRenderer.render(
-                document,
-                report,
-                roots,
-                chapterLayout.firstSegmentChapter(),
-                tocRecorder);
+            pendingTocDestination = chapterLayout.destinationForChapter(chapterLayout.competitiveChapter());
+            PdfGenTimer.time("section.competitive", () -> addCompetitiveLandscape(document, report, chapterLayout.competitiveChapter()));
+            document.add(new AreaBreak());
 
-        pendingTocDestination = chapterLayout.regionalChapterDestination();
-        regionalAnalysisRenderer.render(
-                document,
-                report,
-                roots,
-                chapterLayout.regionalChapter(),
-                tocRecorder);
-        document.add(new AreaBreak());
+            pendingTocDestination = chapterLayout.destinationForChapter(chapterLayout.companyProfilesChapter());
+            PdfGenTimer.time("section.companyProfiles", () -> addCompanyProfiles(document, report, chapterLayout.companyProfilesChapter()));
+            document.add(new AreaBreak());
 
-        pendingTocDestination = chapterLayout.destinationForChapter(chapterLayout.competitiveChapter());
-        addCompetitiveLandscape(document, report, chapterLayout.competitiveChapter());
-        document.add(new AreaBreak());
+            pendingTocDestination = chapterLayout.destinationForChapter(chapterLayout.industryAnalysisChapter());
+            PdfGenTimer.time("section.industryAnalysis", () -> addIndustryAnalysis(document, report, roots, chapterLayout.industryAnalysisChapter()));
+            document.add(new AreaBreak());
 
-        pendingTocDestination = chapterLayout.destinationForChapter(chapterLayout.companyProfilesChapter());
-        addCompanyProfiles(document, report, chapterLayout.companyProfilesChapter());
-        document.add(new AreaBreak());
+            pendingTocDestination = chapterLayout.destinationForChapter(chapterLayout.marketStrategyChapter());
+            PdfGenTimer.time("section.marketStrategy", () -> addMarketStrategyAnalysis(document, report, chapterLayout.marketStrategyChapter()));
+            document.add(new AreaBreak());
 
-        pendingTocDestination = chapterLayout.destinationForChapter(chapterLayout.industryAnalysisChapter());
-        addIndustryAnalysis(document, report, roots, chapterLayout.industryAnalysisChapter());
-        document.add(new AreaBreak());
+            pendingTocDestination = chapterLayout.destinationForChapter(chapterLayout.conclusionsChapter());
+            PdfGenTimer.time("section.conclusions", () -> addReportConclusions(document, report, chapterLayout.conclusionsChapter()));
+            document.add(new AreaBreak());
 
-        pendingTocDestination = chapterLayout.destinationForChapter(chapterLayout.marketStrategyChapter());
-        addMarketStrategyAnalysis(document, report, chapterLayout.marketStrategyChapter());
-        document.add(new AreaBreak());
+            pendingTocDestination = chapterLayout.destinationForChapter(chapterLayout.methodologyChapter());
+            PdfGenTimer.time("section.methodology", () -> addResearchMethodology(document, report, chapterLayout.methodologyChapter()));
+            document.add(new AreaBreak());
 
-        pendingTocDestination = chapterLayout.destinationForChapter(chapterLayout.conclusionsChapter());
-        addReportConclusions(document, report, chapterLayout.conclusionsChapter());
-        document.add(new AreaBreak());
+            PdfGenTimer.time("section.aboutDisclaimer", () -> {
+                addAboutUs(document, report);
+                document.add(new AreaBreak());
+                addDisclaimer(document);
+            });
 
-        pendingTocDestination = chapterLayout.destinationForChapter(chapterLayout.methodologyChapter());
-        addResearchMethodology(document, report, chapterLayout.methodologyChapter());
-        document.add(new AreaBreak());
-
-        addAboutUs(document, report);
-        document.add(new AreaBreak());
-        addDisclaimer(document);
-
-        document.close();
+            PdfGenTimer.time("writer.close", document::close);
+        } finally {
+            PdfDocumentImageCache.endDocument();
+        }
     }
 
     //These below are all methods which user in our main pdf generator method
@@ -233,17 +335,21 @@ public class PdfRenderer {
 
     private void addCoverPage(Document document, SampleReport report) throws IOException {
 
-        ClassPathResource resource = new ClassPathResource("assets/images/cover.png");
-        ImageData imageData = ImageDataFactory.create(resource.getInputStream().readAllBytes());
-        Image coverImage = new Image(imageData);
-
         PageSize pageSize = PageSize.A4.rotate();
         float pageWidth = pageSize.getWidth();
         float pageHeight = pageSize.getHeight();
 
-        // Full-bleed cover
-        coverImage.scaleAbsolute(pageWidth, pageHeight);
-        coverImage.setFixedPosition(1, 0f, 0f);
+        if (!tocIndexingPass) {
+            ImageData imageData = ClasspathImageCache.fromBytes(
+                    "cover:" + theme().coverImagePath(),
+                    loadCoverBytes(theme().coverImagePath()));
+            Image coverImage = PdfDocumentImageCache.image("cover:" + theme().coverImagePath(), imageData);
+
+            // Full-bleed cover
+            coverImage.scaleAbsolute(pageWidth, pageHeight);
+            coverImage.setFixedPosition(1, 0f, 0f);
+            document.add(coverImage);
+        }
 
         float left = 60f;
         float textWidth = pageWidth - (left * 2);
@@ -252,6 +358,9 @@ public class PdfRenderer {
         com.itextpdf.kernel.colors.Color coverMuted = new com.itextpdf.kernel.colors.DeviceRgb(90, 98, 110);
 
         String keyName = report.getKeyName() != null ? report.getKeyName() : "";
+        if (report.isRegionalScope() && report.getScopeName() != null && !report.getScopeName().isBlank()) {
+            keyName = report.getScopeName().trim() + " " + keyName;
+        }
 
         // 1. DYNAMIC FONT SIZE CALCULATION (Auto-adjusts based on text length)
         float titleFontSize = 32f; // Default for normal titles
@@ -309,14 +418,66 @@ public class PdfRenderer {
                     .setFontSize(12)
                     .setFontColor(coverMuted)
                     .setMargin(0)
+                    .setMarginLeft(30f)
                     .setMarginBottom(4f);
             container.add(categoryLine);
         }
 
         // Render cover background first, then the text container on top
-        document.add(coverImage);
         document.add(container);
     }
+
+    private static final ConcurrentHashMap<String, byte[]> COVER_BYTES_CACHE = new ConcurrentHashMap<>();
+
+    private byte[] loadCoverBytes(String path) throws IOException {
+        String key = path == null ? "" : path;
+        byte[] cached = COVER_BYTES_CACHE.get(key);
+        if (cached != null) {
+            return cached;
+        }
+        byte[] bytes = readCoverBytes(path);
+        if (bytes == null || bytes.length == 0) {
+            bytes = ClasspathImageCache.bytes(PdfRenderTheme.DEFAULT_COVER);
+        }
+        COVER_BYTES_CACHE.putIfAbsent(key, bytes);
+        return COVER_BYTES_CACHE.get(key);
+    }
+
+    private static byte[] readCoverBytes(String path) {
+        if (path == null || path.isBlank()) {
+            return null;
+        }
+        String trimmed = path.trim();
+        try {
+            ClassPathResource resource = new ClassPathResource(trimmed);
+            if (resource.exists()) {
+                return resource.getInputStream().readAllBytes();
+            }
+        } catch (Exception ignored) {
+            // fall through to filesystem / upload locations
+        }
+        try {
+            Path file = Paths.get(trimmed);
+            if (Files.exists(file) && Files.isRegularFile(file)) {
+                return Files.readAllBytes(file);
+            }
+        } catch (Exception ignored) {
+            // ignore invalid paths
+        }
+        int slash = trimmed.lastIndexOf('/');
+        if (slash >= 0 && slash < trimmed.length() - 1) {
+            Path uploaded = Paths.get("uploads/assets").resolve(trimmed.substring(slash + 1)).normalize();
+            try {
+                if (Files.exists(uploaded) && Files.isRegularFile(uploaded)) {
+                    return Files.readAllBytes(uploaded);
+                }
+            } catch (Exception ignored) {
+                return null;
+            }
+        }
+        return null;
+    }
+
     private void addReportSummary(Document document, SampleReport report) throws IOException {
 
         Paragraph heading = new Paragraph("REPORT SUMMARY")
@@ -363,18 +524,15 @@ public class PdfRenderer {
                 ? report.getHistoricYear()
                 : report.getBaseYear();
         String market = report.getKeyName();
-        String unit = report.getUnit() != null && !report.getUnit().isBlank()
-                ? report.getUnit()
-                : ""+report.getUnit()+"";
-
         document.add(new Paragraph("Report Summary:\n")
                 .setFont(themeRenderer.bold())
                 .setFontSize(16));
 
         document.add(new Paragraph(
                 "This detailed business research report, focused on the " + market
-                        + " business, fundamentally describes the concepts bifurcated by key segments in terms of Value ("
-                        + unit + ") and key players, and stakeholders in the " + market + " comprehensively. "
+                        + " business, fundamentally describes the concepts bifurcated by key segments in terms of "
+                        + MeasurementLabels.getMeasurementLabel(report)
+                        + " and key players, and stakeholders in the " + market + " comprehensively. "
                         + "Assessment of the current and historical " + market + " business situation ("
                         + historicYear + "-" + report.getBaseYear()
                         + ") is indicated, conflated with competitive landscape and consumer patterns, "
@@ -402,7 +560,7 @@ public class PdfRenderer {
         // 1. Create ZapfDingbats font
         // 1. Create font passing the name directly as a string (no special constants import needed!)
         PdfFont dingbatsFont = PdfFontFactory.createFont("ZapfDingbats");
-        DeviceRgb blueColor = new DeviceRgb(0, 102, 204);
+        DeviceRgb blueColor = theme().secondaryColor();
 
         for (String bullet : bullets) {
             // 2. \u0075 is '♦' in ZapfDingbats
@@ -445,21 +603,22 @@ public class PdfRenderer {
         int mapPageNumber = pdfDocument.getNumberOfPages();
         pagesWithoutHeaderFooter.add(mapPageNumber);
 
-        ClassPathResource mapResource = new ClassPathResource("assets/images/map.jpg");
-        ImageData mapData = ImageDataFactory.create(mapResource.getInputStream().readAllBytes());
-        Image mapImage = new Image(mapData);
+        if (!tocIndexingPass) {
+            ImageData mapData = ClasspathImageCache.get("assets/images/map.jpg");
+            Image mapImage = PdfDocumentImageCache.image("assets/images/map.jpg", mapData);
 
-        PageSize pageSize = PageSize.A4.rotate();
-        float pageWidth = pageSize.getWidth();
-        float pageHeight = pageSize.getHeight();
-        mapImage.scaleAbsolute(pageWidth, pageHeight);
-        mapImage.setFixedPosition(mapPageNumber, 0f, 0f);
-        document.add(mapImage);
+            PageSize pageSize = PageSize.A4.rotate();
+            float pageWidth = pageSize.getWidth();
+            float pageHeight = pageSize.getHeight();
+            mapImage.scaleAbsolute(pageWidth, pageHeight);
+            mapImage.setFixedPosition(mapPageNumber, 0f, 0f);
+            document.add(mapImage);
 
-        // Also suppress HF if the fixed image landed on a newly created following page.
-        int afterAdd = pdfDocument.getNumberOfPages();
-        if (afterAdd != mapPageNumber) {
-            pagesWithoutHeaderFooter.add(afterAdd);
+            // Also suppress HF if the fixed image landed on a newly created following page.
+            int afterAdd = pdfDocument.getNumberOfPages();
+            if (afterAdd != mapPageNumber) {
+                pagesWithoutHeaderFooter.add(afterAdd);
+            }
         }
 
         // Restore body margins, then region value/growth table on the following page
@@ -470,19 +629,19 @@ public class PdfRenderer {
                 document,
                 report,
                 "Region",
-                resolvePreliminaryRegionLabels(roots),
+                resolvePreliminaryRegionLabels(report, roots),
                 "Region");
     }
 
-    private List<String> resolvePreliminaryRegionLabels(List<MarketSegment> roots) {
-        List<MarketSegment> regions = RegionalOutlineBuilder.resolveRegions(roots);
+    private List<String> resolvePreliminaryRegionLabels(SampleReport report, List<MarketSegment> roots) {
+        List<MarketSegment> regions = RegionalOutlineBuilder.resolveRegions(report, roots);
         List<String> labels = new ArrayList<>();
         for (MarketSegment region : regions) {
             if (region != null && region.getSegmentName() != null && !region.getSegmentName().isBlank()) {
                 labels.add(region.getSegmentName());
             }
         }
-        if (!labels.isEmpty()) {
+        if (!labels.isEmpty() || report.isRegionalScope()) {
             return labels;
         }
         return Arrays.asList(
@@ -608,21 +767,13 @@ public class PdfRenderer {
             return;
         }
 
-        for (int i = 0; i < siblings.size(); i++) {
-            MarketSegment segment = siblings.get(i);
+        for (MarketSegment segment : siblings) {
             if (segment == null || segment.getSegmentName() == null || segment.getSegmentName().isBlank()) {
                 continue;
             }
 
-            boolean lastSibling = i == siblings.size() - 1;
-            String branch = lastSibling ? "└── " : "├── ";
             float marginLeft = 12f + (Math.max(0, depth - 1) * 18f);
-
-            document.add(new Paragraph(branch + segment.getSegmentName())
-                    .setFont(themeRenderer.regular())
-                    .setFontSize(10)
-                    .setMarginLeft(marginLeft)
-                    .setKeepWithNext(true));
+            addSegmentDiamondBullet(document, segment.getSegmentName(), marginLeft);
 
             List<MarketSegment> children = segment.getChildren();
             if (children != null && !children.isEmpty()) {
@@ -667,10 +818,11 @@ public class PdfRenderer {
         int baseYear = report.getBaseYear();
         int forecastYear = report.getForecastYear();
         String market = report.getKeyName();
+        String geo = report.geoScopeLabel();
 
         document.add(new Paragraph(
-                "Global " + market
-                        + " Value ("+report.getUnit()+") and Growth Rate (%), By " + segmentTitle)
+                geo + " " + market
+                        + " " + MeasurementLabels.getMeasurementLabel(report) + " and Growth Rate (%), By " + segmentTitle)
                 .setFont(themeRenderer.semiBold())
                 .setFontSize(12)
                 .setFontColor(ColorConstants.BLACK)
@@ -835,14 +987,14 @@ public class PdfRenderer {
         }
 
         document.add(new AreaBreak());
-        document.add(new Paragraph("TABLE  Global " + market + " - Company Revenue Analysis, "
-                + startYear + "-" + endYear + " Value ("+report.getUnit()+")")
+        document.add(new Paragraph("TABLE  " + report.geoScopeLabel() + " " + market + " - Company Revenue Analysis, "
+                + startYear + "-" + endYear + " " + MeasurementLabels.getMeasurementLabel(report))
                 .setFont(themeRenderer.bold())
                 .setFontSize(12));
         addCompanyRevenueTable(document, report, years, false);
 
         document.add(new AreaBreak());
-        document.add(new Paragraph("TABLE  Global " + market + " - Company Revenue Share Analysis, "
+        document.add(new Paragraph("TABLE  " + report.geoScopeLabel() + " " + market + " - Company Revenue Share Analysis, "
                 + startYear + "-" + endYear + " (%)")
                 .setFont(themeRenderer.bold())
                 .setFontSize(12));
@@ -1017,8 +1169,7 @@ public class PdfRenderer {
             Paragraph companyHeading = new Paragraph(chapter + "." + companySection + " " + company.getCompanyName())
                     .setFont(themeRenderer.bold())
                     .setFontSize(11)
-                    .setFontColor(BodyFigureLayout.NUMBERED_SECTION_HEADING_COLOR)
-                    .setKeepWithNext(true);
+                    .setFontColor(BodyFigureLayout.NUMBERED_SECTION_HEADING_COLOR);
             companyHeading.setDestination("toc." + chapter + "." + companySection);
             document.add(companyHeading);
             recordTocDestinationPage(document, "toc." + chapter + "." + companySection);
@@ -1026,7 +1177,7 @@ public class PdfRenderer {
         }
 
 
-       document.add(new AreaBreak());
+       //document.add(new AreaBreak());
 
 //        Paragraph others = new Paragraph(chapter + "." + companySection + " Others")
 //                .setFont(themeRenderer.bold())
@@ -1211,11 +1362,11 @@ public class PdfRenderer {
                 "This chapter provides taxonomy, key trends, value chain, regulatory mandates, technology roadmap, "
                         + "SWOT, and attractiveness analysis for the " + market + ".");
 
-        BodyFigureLayout.addClasspathFigure(document, "assets/images/img_3.png", 100f);
-        BodyFigureLayout.addClasspathFigure(document, "assets/images/img_3.png", 100f);
+        BodyFigureLayout.addClasspathFigureWithMaxHeight(document, "assets/images/img_3.png", 100f);
+        BodyFigureLayout.addClasspathFigureWithMaxHeight(document, "assets/images/img_3.png", 100f);
 
 
-        document.add(new AreaBreak());
+
         document.add(new AreaBreak());
         addNumberedSection(document, chapter + ".2", market + " - Key Trends", null);
         document.add(BodyFigureLayout.figureCaptionUnnumbered(themeRenderer, "FIGURE  ", "Market Dynamics"));
@@ -1407,7 +1558,7 @@ public class PdfRenderer {
                         + " on a global and regional level as well as country level trends and market sizes. "
                         + "The study provides historical data from " + historic + " to " + forecast
                         + " along with projections from " + base + " to " + forecast
-                        + " based on revenue Value ("+report.getUnit()+"). The study includes the drivers and restraints of the "
+                        + " based on revenue " + MeasurementLabels.getMeasurementLabel(report) + ". The study includes the drivers and restraints of the "
                         + market + " along with their impact on the demand over the forecast period. Additionally, "
                         + "the report includes the study of opportunities available in the " + market + ". \n\n"
                         + "The report provides qualitative industry analysis further quantified by their impacts over the historical timeline "
@@ -1881,7 +2032,7 @@ public class PdfRenderer {
 
         // 1. Initialize ZapfDingbats font and Blue color
         PdfFont dingbatsFont = PdfFontFactory.createFont("ZapfDingbats");
-        DeviceRgb blueColor = new DeviceRgb(0, 102, 204);
+        DeviceRgb blueColor = theme().secondaryColor();
 
         // 2. Loop through companies with blue diamond bullet
         for (Company company : report.getCompanies()) {
@@ -1910,16 +2061,16 @@ public class PdfRenderer {
                 .setFont(dingbatsFont)
                 .setFontColor(blueColor);
 
-        Text othersText = new Text("Others");
+        //Text othersText = new Text("Others");
 
-        Paragraph othersParagraph = new Paragraph()
-                .add(diamondSymbol)
-                .add(othersText)
-                .setFont(themeRenderer.regular())
-                .setFontSize(10) // Set to 10 to match company list items, or adjust as needed
-                .setMarginLeft(13);
-
-        document.add(othersParagraph);
+//        Paragraph othersParagraph = new Paragraph()
+//                .add(diamondSymbol)
+//                .add(othersText)
+//                .setFont(themeRenderer.regular())
+//                .setFontSize(10) // Set to 10 to match company list items, or adjust as needed
+//                .setMarginLeft(13);
+//
+//        document.add(othersParagraph);
     }
     private void addListOfFigures(
             Document document,
@@ -1928,6 +2079,7 @@ public class PdfRenderer {
             ReportChapterLayout chapterLayout) throws IOException {
 
         String market = report.getKeyName().toUpperCase(Locale.ROOT);
+        String geo = report.geoScopeLabelUpper();
         int historicYear = historicYear(report);
         String yearRange = historicYear + "-" + report.getForecastYear();
         String yearPair = report.getBaseYear() + " & " + report.getForecastYear();
@@ -1941,7 +2093,7 @@ public class PdfRenderer {
 
         List<String> captions = new ArrayList<>();
         captions.add("FIGURE 1 COVID-19 IMPACT ANALYSIS");
-        captions.add("FIGURE 2 GLOBAL " + market + ", " + yearRange + " VALUE ("+report.getUnit()+")");
+        captions.add("FIGURE 2 " + geo + " " + market + ", " + yearRange + " " + MeasurementLabels.getMeasurementLabel(report));
 
         int figure = 3;
         List<MarketSegment> dimensions = RegionalOutlineBuilder.segmentDimensions(roots);
@@ -1950,43 +2102,49 @@ public class PdfRenderer {
                 continue;
             }
             String dim = dimension.getSegmentName().toUpperCase(Locale.ROOT);
-            captions.add("FIGURE " + figure++ + " GLOBAL " + market + " SHARE, BY " + dim
-                    + ", " + yearPair + " VALUE ("+report.getUnit()+")");
+            captions.add("FIGURE " + figure++ + " " + geo + " " + market + " SHARE, BY " + dim
+                    + ", " + yearPair + " " + MeasurementLabels.getMeasurementLabel(report));
             List<MarketSegment> children = dimension.getChildren();
             if (children != null && !children.isEmpty()) {
                 MarketSegment first = children.get(0);
                 if (first != null && first.getSegmentName() != null) {
-                    captions.add("FIGURE " + figure++ + " GLOBAL " + market + " FOR "
+                    captions.add("FIGURE " + figure++ + " " + geo + " " + market + " FOR "
                             + first.getSegmentName().toUpperCase(Locale.ROOT)
-                            + ", " + yearRange + " VALUE ("+report.getUnit()+")");
+                            + ", " + yearRange + " " + MeasurementLabels.getMeasurementLabel(report));
                 }
             }
         }
 
-        captions.add("FIGURE " + figure++ + " GLOBAL " + market + " SHARE, BY REGION, "
-                + yearPair + " VALUE ("+report.getUnit()+")");
-
-        List<MarketSegment> regions = RegionalOutlineBuilder.resolveRegions(roots);
-        if (regions.isEmpty()) {
-            for (String region : com.sample_generator.sample.pdf.regional.RegionalGeoCatalog.defaultRegionOrder()) {
-                captions.add("FIGURE " + figure++ + " " + region.toUpperCase(Locale.ROOT) + " "
-                        + market + ", " + yearRange + " VALUE ("+report.getUnit()+")");
+        if (!report.isCountryScope()) {
+            if (!report.isRegionalScope()) {
+                captions.add("FIGURE " + figure++ + " " + geo + " " + market + " SHARE, BY REGION, "
+                        + yearPair + " " + MeasurementLabels.getMeasurementLabel(report));
             }
-        } else {
-            for (MarketSegment region : regions) {
-                if (region == null || region.getSegmentName() == null) {
-                    continue;
+
+            List<MarketSegment> regions = RegionalOutlineBuilder.resolveRegions(report, roots);
+            if (regions.isEmpty()) {
+                if (!report.isRegionalScope()) {
+                    for (String region : com.sample_generator.sample.pdf.regional.RegionalGeoCatalog.defaultRegionOrder()) {
+                        captions.add("FIGURE " + figure++ + " " + region.toUpperCase(Locale.ROOT) + " "
+                                + market + ", " + yearRange + " " + MeasurementLabels.getMeasurementLabel(report));
+                    }
                 }
-                captions.add("FIGURE " + figure++ + " " + region.getSegmentName().toUpperCase(Locale.ROOT)
-                        + " " + market + ", " + yearRange + " VALUE ("+report.getUnit()+")");
-                List<MarketSegment> countries = region.getChildren();
-                if (countries != null) {
-                    for (MarketSegment country : countries) {
-                        if (country == null || country.getSegmentName() == null) {
-                            continue;
+            } else {
+                for (MarketSegment region : regions) {
+                    if (region == null || region.getSegmentName() == null) {
+                        continue;
+                    }
+                    captions.add("FIGURE " + figure++ + " " + region.getSegmentName().toUpperCase(Locale.ROOT)
+                            + " " + market + ", " + yearRange + " " + MeasurementLabels.getMeasurementLabel(report));
+                    List<MarketSegment> countries = region.getChildren();
+                    if (countries != null) {
+                        for (MarketSegment country : countries) {
+                            if (country == null || country.getSegmentName() == null) {
+                                continue;
+                            }
+                            captions.add("FIGURE " + figure++ + " " + country.getSegmentName().toUpperCase(Locale.ROOT)
+                                    + " " + market + ", " + yearRange + " " + MeasurementLabels.getMeasurementLabel(report));
                         }
-                        captions.add("FIGURE " + figure++ + " " + country.getSegmentName().toUpperCase(Locale.ROOT)
-                                + " " + market + ", " + yearRange + " VALUE ("+report.getUnit()+")");
                     }
                 }
             }
@@ -1994,7 +2152,7 @@ public class PdfRenderer {
 
         captions.add("FIGURE " + figure++ + " COMPETITOR MARKET SHARE – REVENUE");
         captions.add("FIGURE " + figure++ + " MARKET DYNAMICS");
-        captions.add("FIGURE " + figure++ + " GLOBAL " + market + " – VALUE CHAIN ANALYSIS");
+        captions.add("FIGURE " + figure++ + " " + geo + " " + market + " – VALUE CHAIN ANALYSIS");
         captions.add("FIGURE " + figure++ + " KEY MANDATES AND REGULATIONS");
         captions.add("FIGURE " + figure++ + " TECHNOLOGY ROADMAP AND TIMELINE");
         captions.add("FIGURE " + figure++ + " SWOT ANALYSIS");
@@ -2030,6 +2188,7 @@ public class PdfRenderer {
             ReportChapterLayout chapterLayout) throws IOException {
 
         String market = report.getKeyName().toUpperCase(Locale.ROOT);
+        String geo = report.geoScopeLabelUpper();
         int historicYear = historicYear(report);
         String yearRange = historicYear + " - " + report.getForecastYear();
         float tabPosition = 718f;
@@ -2042,48 +2201,54 @@ public class PdfRenderer {
 
         List<String> captions = new ArrayList<>();
         int tableNo = 1;
-        captions.add("TABLE " + tableNo++ + " GLOBAL " + market + ", " + yearRange + " VALUE ("+report.getUnit()+")");
+        captions.add("TABLE " + tableNo++ + " " + geo + " " + market + ", " + yearRange + " " + MeasurementLabels.getMeasurementLabel(report));
 
         List<MarketSegment> dimensions = RegionalOutlineBuilder.segmentDimensions(roots);
         for (MarketSegment dimension : dimensions) {
             if (dimension == null || dimension.getSegmentName() == null) {
                 continue;
             }
-            captions.add("TABLE " + tableNo++ + " GLOBAL " + market + ", BY "
+            captions.add("TABLE " + tableNo++ + " " + geo + " " + market + ", BY "
                     + dimension.getSegmentName().toUpperCase(Locale.ROOT) + " "
-                    + yearRange + " VALUE ("+report.getUnit()+")");
+                    + yearRange + " " + MeasurementLabels.getMeasurementLabel(report));
         }
 
-        captions.add("TABLE " + tableNo++ + " GLOBAL " + market + ", BY REGION "
-                + yearRange + " VALUE ("+report.getUnit()+")");
+        if (!report.isCountryScope()) {
+            if (!report.isRegionalScope()) {
+                captions.add("TABLE " + tableNo++ + " " + geo + " " + market + ", BY REGION "
+                        + yearRange + " " + MeasurementLabels.getMeasurementLabel(report));
+            }
 
-        List<MarketSegment> regions = RegionalOutlineBuilder.resolveRegions(roots);
-        List<String> regionNames = new ArrayList<>();
-        if (regions.isEmpty()) {
-            regionNames.addAll(com.sample_generator.sample.pdf.regional.RegionalGeoCatalog.defaultRegionOrder());
-        } else {
-            for (MarketSegment region : regions) {
-                if (region != null && region.getSegmentName() != null) {
-                    regionNames.add(region.getSegmentName());
+            List<MarketSegment> regions = RegionalOutlineBuilder.resolveRegions(report, roots);
+            List<String> regionNames = new ArrayList<>();
+            if (regions.isEmpty()) {
+                if (!report.isRegionalScope()) {
+                    regionNames.addAll(com.sample_generator.sample.pdf.regional.RegionalGeoCatalog.defaultRegionOrder());
+                }
+            } else {
+                for (MarketSegment region : regions) {
+                    if (region != null && region.getSegmentName() != null) {
+                        regionNames.add(region.getSegmentName());
+                    }
                 }
             }
-        }
-        for (String regionName : regionNames) {
-            captions.add("TABLE " + tableNo++ + " " + regionName.toUpperCase(Locale.ROOT) + " "
-                    + market + ", BY COUNTRY " + yearRange + " VALUE ("+report.getUnit()+")");
-            for (MarketSegment dimension : dimensions) {
-                if (dimension == null || dimension.getSegmentName() == null) {
-                    continue;
-                }
+            for (String regionName : regionNames) {
                 captions.add("TABLE " + tableNo++ + " " + regionName.toUpperCase(Locale.ROOT) + " "
-                        + market + ", BY " + dimension.getSegmentName().toUpperCase(Locale.ROOT)
-                        + " " + yearRange + " VALUE ("+report.getUnit()+")");
+                        + market + ", BY COUNTRY " + yearRange + " " + MeasurementLabels.getMeasurementLabel(report));
+                for (MarketSegment dimension : dimensions) {
+                    if (dimension == null || dimension.getSegmentName() == null) {
+                        continue;
+                    }
+                    captions.add("TABLE " + tableNo++ + " " + regionName.toUpperCase(Locale.ROOT) + " "
+                            + market + ", BY " + dimension.getSegmentName().toUpperCase(Locale.ROOT)
+                            + " " + yearRange + " " + MeasurementLabels.getMeasurementLabel(report));
+                }
             }
         }
 
-        captions.add("TABLE " + tableNo++ + " GLOBAL " + market
-                + " - COMPANY REVENUE ANALYSIS, VALUE ("+report.getUnit()+")");
-        captions.add("TABLE " + tableNo++ + " GLOBAL " + market
+        captions.add("TABLE " + tableNo++ + " " + geo + " " + market
+                + " - COMPANY REVENUE ANALYSIS, " + MeasurementLabels.getMeasurementLabel(report));
+        captions.add("TABLE " + tableNo++ + " " + geo + " " + market
                 + " - COMPANY REVENUE SHARE ANALYSIS (%)");
         captions.add("TABLE " + tableNo++ + " ACQUISITION AND MERGERS");
         captions.add("TABLE " + tableNo++ + " NEW PRODUCTS");
@@ -2115,6 +2280,7 @@ public class PdfRenderer {
     private void addTableOfContents(Document document, SampleReport report, ReportChapterLayout chapterLayout)
             throws IOException {
         String market = report.getKeyName();
+        String geo = report.geoScopeLabel();
         int baseYear = report.getBaseYear();
         int forecastYear = report.getForecastYear();
         int historic = historicYear(report);
@@ -2127,14 +2293,14 @@ public class PdfRenderer {
 
         addTocChapter(document, 1, "Executive Summary", formatTocPage("toc.ch1"));
         addTocEntry(document, "1.1", "Introduction of " + market, 1, formatTocPage("toc.1.1"));
-        addTocEntry(document, "1.1.1", "Global " + market + ", " + baseYear + " & " + forecastYear
-                + " Value ("+report.getUnit()+")", 2, formatTocPage("toc.1.1.1"));
+        addTocEntry(document, "1.1.1", geo + " " + market + ", " + baseYear + " & " + forecastYear
+                + " " + MeasurementLabels.getMeasurementLabel(report), 2, formatTocPage("toc.1.1.1"));
         addTocEntry(document, "1.2", "COVID-19 Impacts on " + market + " Industry", 1, formatTocPage("toc.1.2"));
         addTocEntry(document, "1.2.1", "COVID-19 Short-Term Impact & Business Strategies", 2, formatTocPage("toc.1.2.1"));
         addTocEntry(document, "1.2.2", "COVID-19 Mid-Term Impact & Business Strategies", 2, formatTocPage("toc.1.2.2"));
         addTocEntry(document, "1.2.3", "COVID-19 Long-Term Impact & Business Strategies", 2, formatTocPage("toc.1.2.3"));
-        addTocEntry(document, "1.3", "Global " + market + ", " + historic + " - " + forecastYear
-                + " Value ("+report.getUnit()+")", 1, formatTocPage("toc.1.3"));
+        addTocEntry(document, "1.3", geo + " " + market + ", " + historic + " - " + forecastYear
+                + " " + MeasurementLabels.getMeasurementLabel(report), 1, formatTocPage("toc.1.3"));
 
         int segmentChapter = chapterLayout.firstSegmentChapter();
         List<String> segmentTitles = chapterLayout.getSegmentChapterTitles();
@@ -2147,18 +2313,22 @@ public class PdfRenderer {
         }
 
         int regionalChapter = chapterLayout.regionalChapter();
-        addTocChapter(
-                document,
-                regionalChapter,
-                market + " - Regional Analysis",
-                formatTocPage(chapterLayout.regionalChapterDestination()));
-        for (TocOutlineEntry entry : chapterLayout.getRegionalTocEntries()) {
-            addTocEntry(
+        if (chapterLayout.includeRegionalChapter()) {
+            addTocChapter(
                     document,
-                    entry.number(),
-                    entry.title(),
-                    entry.level(),
-                    formatTocPage(entry.destinationKey()));
+                    regionalChapter,
+                    report.isRegionalScope()
+                            ? report.geoScopeLabel() + " " + market + " - Regional Analysis"
+                            : market + " - Regional Analysis",
+                    formatTocPage(chapterLayout.regionalChapterDestination()));
+            for (TocOutlineEntry entry : chapterLayout.getRegionalTocEntries()) {
+                addTocEntry(
+                        document,
+                        entry.number(),
+                        entry.title(),
+                        entry.level(),
+                        formatTocPage(entry.destinationKey()));
+            }
         }
 
         int competitive = chapterLayout.competitiveChapter();
@@ -2386,7 +2556,6 @@ public class PdfRenderer {
         addChapterHeadings(document, report, "CHAPTER 1  Executive Summary");
 
         String market = report.getKeyName();
-        String unit = report.getUnit() != null && !report.getUnit().isBlank() ? report.getUnit() : ""+report.getUnit()+"";
         double baseValue = report.getMarketValueBaseYear() != null ? report.getMarketValueBaseYear() : 0;
         double forecastValue = report.getMarketValueForecastYear() != null ? report.getMarketValueForecastYear() : 0;
         double[] globalSeries = valueSeriesProvider.yearlyValuesUsdMillion(report, market);
@@ -2400,9 +2569,11 @@ public class PdfRenderer {
 
         document.add(new Paragraph(
                 "The global " + market + " is projected to reach "
-                        + valueSeriesProvider.formatValue(forecastValue) + " Value (" + unit + ") by "
+                        + valueSeriesProvider.formatValue(forecastValue) + " "
+                        + MeasurementLabels.getMeasurementLabel(report) + " by "
                         + report.getForecastYear() + ", from "
-                        + valueSeriesProvider.formatValue(baseValue) + " Value (" + unit + ") in "
+                        + valueSeriesProvider.formatValue(baseValue) + " "
+                        + MeasurementLabels.getMeasurementLabel(report) + " in "
                         + report.getBaseYear() + " and is anticipated to register a CAGR of "
                         + valueSeriesProvider.formatPercent(cagr) + " between "
                         + report.getBaseYear() + " and " + report.getForecastYear())
@@ -2418,8 +2589,8 @@ public class PdfRenderer {
         document.add(section11);
         recordTocDestinationPage(document, "toc.1.1");
 
-        Paragraph section111 = new Paragraph("1.1.1 Global " + market + ", "
-                + report.getBaseYear() + " & " + report.getForecastYear() + " Value ("+report.getUnit()+")")
+        Paragraph section111 = new Paragraph("1.1.1 " + report.geoScopeLabel() + " " + market + ", "
+                + report.getBaseYear() + " & " + report.getForecastYear() + " " + MeasurementLabels.getMeasurementLabel(report))
                 .setFont(themeRenderer.bold())
                 .setFontSize(11);
         BodyFigureLayout.breakBeforeNumberedHeading(document, section111);
@@ -2456,13 +2627,13 @@ public class PdfRenderer {
         addNumberedSection(document, "1.2.3", "COVID-19 Long-Term Impact & Business Strategies", null);
 
         // Special figure page: caption + chart + source (keep unit together; shrink if needed).
-        document.add(new AreaBreak());
+
         document.add(new AreaBreak());
         addCovidImages(document, report);
         document.add(new AreaBreak());
 
-        Paragraph section13 = new Paragraph("1.3 Global " + market + ", "
-                + historicYear(report) + "-" + report.getForecastYear() + " Value ("+report.getUnit()+")")
+        Paragraph section13 = new Paragraph("1.3 " + report.geoScopeLabel() + " " + market + ", "
+                + historicYear(report) + "-" + report.getForecastYear() + " " + MeasurementLabels.getMeasurementLabel(report))
                 .setFont(themeRenderer.bold())
                 .setFontSize(11);
         BodyFigureLayout.breakBeforeNumberedHeading(document, section13);
@@ -2473,8 +2644,8 @@ public class PdfRenderer {
         document.add(BodyFigureLayout.figureCaption(
                 themeRenderer,
                 2,
-                "Global " + market + ", "
-                        + historicYear(report) + "-" + report.getForecastYear() + " Value ("+report.getUnit()+")"));
+                report.geoScopeLabel() + " " + market + ", "
+                        + historicYear(report) + "-" + report.getForecastYear() + " " + MeasurementLabels.getMeasurementLabel(report)));
         BodyFigureLayout.addClasspathFigure(document, "assets/images/fig2.jpg", 80f);
         sourceParagraph(document, report, reportPlaceholderSource());
     }
@@ -2486,8 +2657,8 @@ public class PdfRenderer {
         int baseYear = report.getBaseYear();
         int forecastYear = report.getForecastYear();
 
-        document.add(new Paragraph("TABLE 1  Global " + market + ", "
-                + baseYear + " & " + forecastYear + " Value ("+report.getUnit()+")")
+        document.add(new Paragraph("TABLE 1  " + report.geoScopeLabel() + " " + market + ", "
+                + baseYear + " & " + forecastYear + " " + MeasurementLabels.getMeasurementLabel(report))
                 .setFont(themeRenderer.semiBold())
                 .setFontSize(11));
 
@@ -2503,7 +2674,7 @@ public class PdfRenderer {
         String cagr = valueSeriesProvider.formatPercent(valueSeriesProvider.cagrPercent(globalSeries, report));
 
         addHeaderRow3Col(table, "Parameter", String.valueOf(baseYear), String.valueOf(forecastYear));
-        addRow3Col(table, "Global " + market + " Value ("+report.getUnit()+")",
+        addRow3Col(table, report.geoScopeLabel() + " " + market + " " + MeasurementLabels.getMeasurementLabel(report),
                 valueSeriesProvider.formatValue(baseValue),
                 valueSeriesProvider.formatValue(forecastValue));
         addRow3Col(table, "CAGR % (" + baseYear + "-" + forecastYear + ")", cagr, cagr);
@@ -2524,12 +2695,14 @@ public class PdfRenderer {
             }
         }
 
-        List<MarketSegment> regions = RegionalOutlineBuilder.resolveRegions(roots);
+        List<MarketSegment> regions = RegionalOutlineBuilder.resolveRegions(report, roots);
         String fastestRegion = "—";
         double bestCagr = Double.NEGATIVE_INFINITY;
         List<String> regionNames = new ArrayList<>();
         if (regions.isEmpty()) {
-            regionNames.addAll(com.sample_generator.sample.pdf.regional.RegionalGeoCatalog.defaultRegionOrder());
+            if (!report.isRegionalScope()) {
+                regionNames.addAll(com.sample_generator.sample.pdf.regional.RegionalGeoCatalog.defaultRegionOrder());
+            }
         } else {
             for (MarketSegment region : regions) {
                 if (region != null && region.getSegmentName() != null) {
@@ -2597,26 +2770,21 @@ public class PdfRenderer {
 
         document.add(BodyFigureLayout.figureCaption(themeRenderer, 1, "COVID-19 Impact Analysis"));
 
-        ClassPathResource resource = new ClassPathResource("assets/images/CIA.png");
-        ImageData imageData = ImageDataFactory.create(resource.getInputStream().readAllBytes());
+        ImageData imageData = ClasspathImageCache.get("assets/images/CIA.png");
+        Image image = PdfDocumentImageCache.image("assets/images/CIA.png", imageData);
 
-// 1. Create the Image object
-        Image image = new Image(imageData);
+        image.setMarginTop(20f);
+        image.setMaxHeight(300f);
+        image.setAutoScaleHeight(false);
 
-// 2. Set custom height and top margin
-        image.setMarginTop(20f);      // Adds top margin (adjust points as needed)
-        image.setMaxHeight(300f);      // Restricts maximum height (or use setHeight(80f))
-        image.setAutoScaleHeight(false); // Ensures hard height limits are respected if scaled
-
-// 3. Apply your layout scaling utility and add to document
         document.add(BodyFigureLayout.scaleForBody(image));
 
         sourceParagraph(document, report, reportPlaceholderSource());
     }
     private void addCovidParagraph2(Document document, SampleReport report) throws IOException {
 
-        document.add(new Paragraph("1.3 " + report.getKeyName()+"," + report.getHistoricYear()+ " - " +report.getForecastYear() + " Value (" +report.getUnit()+ ")"));
-        document.add(new Paragraph("FIGURE 2 " + report.getKeyName()+"," + report.getHistoricYear()+ " - " +report.getForecastYear() + " Value (" +report.getUnit()+ ")"));
+        document.add(new Paragraph("1.3 " + report.getKeyName()+"," + report.getHistoricYear()+ " - " +report.getForecastYear() + " " + MeasurementLabels.getMeasurementLabel(report)));
+        document.add(new Paragraph("FIGURE 2 " + report.getKeyName()+"," + report.getHistoricYear()+ " - " +report.getForecastYear() + " " + MeasurementLabels.getMeasurementLabel(report)));
         addImageToPages(document, report, "assets/images/fig2.jpg");
         sourceParagraph(document, report,
                 "Source: Primary Interviews, Surveys, Secondary Sources, In-house & Paid External Databases, Spherical Insights, 2026.");
@@ -2867,6 +3035,10 @@ public class PdfRenderer {
                                     SampleReport report,
                                     int pageNumber) throws IOException {
 
+        if (tocIndexingPass) {
+            return;
+        }
+
         PdfDocument pdfDocument = document.getPdfDocument();
         if (pdfDocument == headerFooterRegisteredDocument) {
             return;
@@ -2881,10 +3053,8 @@ public class PdfRenderer {
 
         String category = report.getCategory();
 
-        ImageData logoData = ImageDataFactory.create(
-                new ClassPathResource("assets/images/spherical.png").getInputStream().readAllBytes());
-        ImageData yellowLineData = ImageDataFactory.create(
-                new ClassPathResource("assets/images/yellow_line.png").getInputStream().readAllBytes());
+        ImageData logoData = ClasspathImageCache.get("assets/images/spherical.png");
+        ImageData yellowLineData = ClasspathImageCache.get("assets/images/yellow_line.png");
 
 //        logoData.setHeight(500);
 //        logoData.setWidth(1000);
@@ -2898,7 +3068,9 @@ public class PdfRenderer {
                         category,
                         logoData,
                         yellowLineData,
-                        pagesWithoutHeaderFooter));
+                        pagesWithoutHeaderFooter,
+                        theme().headerColor(),
+                        theme().footerColor()));
     }
 
     private static final class HeaderFooterPageEventHandler implements IEventHandler {
@@ -2916,9 +3088,11 @@ public class PdfRenderer {
         private final PdfFont semiBoldFont;
         private final String headerTitle;
         private final String category;
-        private final ImageData logoData;
-        private final ImageData yellowLineData;
+        private final PdfImageXObject logoXObject;
+        private final PdfImageXObject yellowLineXObject;
         private final Set<Integer> pagesWithoutHeaderFooter;
+        private final DeviceRgb headerColor;
+        private final DeviceRgb footerColor;
 
         private HeaderFooterPageEventHandler(
                 PdfFont regularFont,
@@ -2927,14 +3101,18 @@ public class PdfRenderer {
                 String category,
                 ImageData logoData,
                 ImageData yellowLineData,
-                Set<Integer> pagesWithoutHeaderFooter) {
+                Set<Integer> pagesWithoutHeaderFooter,
+                DeviceRgb headerColor,
+                DeviceRgb footerColor) {
             this.regularFont = regularFont;
             this.semiBoldFont = semiBoldFont;
             this.headerTitle = headerTitle;
             this.category = category;
-            this.logoData = logoData;
-            this.yellowLineData = yellowLineData;
+            this.logoXObject = new PdfImageXObject(logoData);
+            this.yellowLineXObject = new PdfImageXObject(yellowLineData);
             this.pagesWithoutHeaderFooter = pagesWithoutHeaderFooter;
+            this.headerColor = headerColor != null ? headerColor : BACK_TO_TOP_COLOR;
+            this.footerColor = footerColor != null ? footerColor : FOOTER_BAR_COLOR;
         }
 
         @Override
@@ -2972,7 +3150,7 @@ public class PdfRenderer {
                 Paragraph categoryText = new Paragraph( "Category: "+category)
                         .setFont(semiBoldFont)
                         .setFontSize(9f)
-                        .setFontColor(BACK_TO_TOP_COLOR)
+                        .setFontColor(headerColor)
                         .setMargin(0);
                 canvas.showTextAligned(
                         categoryText,
@@ -2981,14 +3159,14 @@ public class PdfRenderer {
                         TextAlignment.LEFT);
 
                 pdfCanvas.saveState()
-                        .setFillColor(FOOTER_BAR_COLOR)
+                        .setFillColor(footerColor)
                         .rectangle(0, 530, 600, 4)
                         .fill()
                         .restoreState();
 
                 float logoWidth = 240f;
                 float logoHeight = 170f;
-                Image logo = new Image(logoData);
+                Image logo = new Image(logoXObject);
                 logo.scaleToFit(logoWidth, logoHeight);
                 logo.setFixedPosition(
                         pageNum,
@@ -2998,7 +3176,7 @@ public class PdfRenderer {
                 canvas.add(logo);
 
                 float dividerWidth = width - (HORIZONTAL_MARGIN * 2f);
-                Image divider = new Image(yellowLineData);
+                Image divider = new Image(yellowLineXObject);
                 divider.scaleToFit(dividerWidth, 4f);
                 divider.setFixedPosition(
                         pageNum,
@@ -3011,7 +3189,7 @@ public class PdfRenderer {
                         .setFont(regularFont)
                         .setBold()
                         .setFontSize(9f)
-                        .setFontColor(BACK_TO_TOP_COLOR)
+                        .setFontColor(headerColor)
                         .setMargin(0)
                         .setAction(PdfAction.createGoTo(
                                 PdfExplicitDestination.createFit(pdfDoc.getPage(1))));
@@ -3029,7 +3207,7 @@ public class PdfRenderer {
                 float barWidth2 = 550f;
 
                 pdfCanvas.saveState()
-                        .setFillColor(FOOTER_BAR_COLOR)
+                        .setFillColor(footerColor)
                         .rectangle(barLeft2, barBottom, barWidth2, barHeight)
                         .fill()
                         .restoreState();
@@ -3079,9 +3257,13 @@ public class PdfRenderer {
 
     }
     private void addSegmentDiamondBullet(Document document, String text) throws IOException {
-        ImageData bulletData = ImageDataFactory.create(
-                new ClassPathResource(LIST_SYMBOL_IMAGE).getInputStream().readAllBytes());
-        Image bullet = new Image(bulletData);
+        addSegmentDiamondBullet(document, text, 0f);
+    }
+
+    private void addSegmentDiamondBullet(Document document, String text, float marginLeft) throws IOException {
+        Image bullet = PdfDocumentImageCache.image(
+                LIST_SYMBOL_IMAGE,
+                ClasspathImageCache.get(LIST_SYMBOL_IMAGE));
         // Golden segment intro bullets are ~12×8pt at the body left margin.
         bullet.scaleAbsolute(12f, 8f);
         bullet.setMarginRight(0f);
@@ -3089,7 +3271,7 @@ public class PdfRenderer {
         document.add(new Paragraph()
                 .add(bullet)
                 .add(new Text("  " + text).setFont(themeRenderer.regular()).setFontSize(10))
-                .setMarginLeft(0f)
+                .setMarginLeft(marginLeft)
                 .setMarginTop(2f)
                 .setMarginBottom(2f)
                 .setFixedLeading(14f)

@@ -7,9 +7,12 @@ import com.itextpdf.layout.element.Table;
 import com.itextpdf.layout.properties.TextAlignment;
 import com.sample_generator.sample.Entity.MarketSegment;
 import com.sample_generator.sample.Entity.SampleReport;
+import com.sample_generator.sample.pdf.MeasurementLabels;
 import com.sample_generator.sample.pdf.ThemeRenderer;
 import com.sample_generator.sample.pdf.table.BodyTableStyling;
 import com.sample_generator.sample.pdf.charts.RegionalTrendChartGenerator;
+import com.sample_generator.sample.pdf.PdfGenTimer;
+import com.sample_generator.sample.pdf.PdfRenderPass;
 import com.sample_generator.sample.pdf.layout.BodyFigureLayout;
 import com.sample_generator.sample.pdf.outline.RegionalOutlineBuilder;
 import com.sample_generator.sample.pdf.regional.RegionalGeoCatalog;
@@ -47,25 +50,31 @@ public class RegionalAnalysisRenderer {
             int chapter,
             TocSectionRecorder toc) throws IOException {
 
-        List<MarketSegment> regions = RegionalOutlineBuilder.resolveRegions(roots);
+        List<MarketSegment> regions = RegionalOutlineBuilder.resolveRegions(report, roots);
         List<MarketSegment> dimensions = RegionalOutlineBuilder.segmentDimensions(roots);
 
         document.add(new AreaBreak());
 
         String market = report.getKeyName();
         String chapterPrefix = String.valueOf(chapter);
+        boolean regionalOnly = report.isRegionalScope();
+        String analysisTitle = regionalOnly
+                ? report.geoScopeLabel() + " " + market + " - Regional Analysis"
+                : market + " - Regional Analysis";
 
         Paragraph chapterHeading = new Paragraph(
-                "CHAPTER " + chapter + "  " + market + " - Regional Analysis")
+                "CHAPTER " + chapter + "  " + analysisTitle)
                 .setFont(themeRenderer.bold())
                 .setFontSize(16)
                 .setUnderline();
         toc.recordChapter(document, chapter, chapterHeading);
 
-        renderChapterIntroduction(document, report, roots, chapter, toc);
+        if (!regionalOnly) {
+            renderChapterIntroduction(document, report, roots, chapter, toc);
+        }
 
-        int regionSection = 3;
-        if (regions.isEmpty()) {
+        int regionSection = regionalOnly ? 1 : 3;
+        if (regions.isEmpty() && !regionalOnly) {
             for (String regionName : RegionalGeoCatalog.defaultRegionOrder()) {
                 renderFallbackRegion(document, report, regionName, dimensions, chapterPrefix, regionSection++, toc);
             }
@@ -104,7 +113,7 @@ public class RegionalAnalysisRenderer {
 
         recordSectionHeading(document, toc, "toc." + chapterPrefix + ".2",
                 new Paragraph(chapterPrefix + ".2 Global " + market + " Share, by Region, "
-                        + yearPair + " Value (USD Million)")
+                        + yearPair + " " + MeasurementLabels.getMeasurementLabel(report))
                         .setFont(themeRenderer.semiBold())
                         .setFontSize(12)
                         .setFontColor(BodyFigureLayout.NUMBERED_SECTION_HEADING_COLOR)
@@ -114,7 +123,7 @@ public class RegionalAnalysisRenderer {
                 themeRenderer,
                 nextFigureNumber(),
                 "Global " + market + " Share, by Region, "
-                        + yearPair + " Value (USD Million)"));
+                        + yearPair + " " + MeasurementLabels.getMeasurementLabel(report)));
 
         addRegionalShareChart(document, report, roots);
         sourceParagraph(document);
@@ -122,12 +131,12 @@ public class RegionalAnalysisRenderer {
         document.add(new AreaBreak());
 
         document.add(new Paragraph("TABLE " + chapter + " Global " + market + ", by Region, " + yearSpan
-                + " Value (USD Million)")
+                + " " + MeasurementLabels.getMeasurementLabel(report))
                 .setFont(themeRenderer.bold())
                 .setFontSize(12)
                 .setKeepWithNext(true));
 
-        List<String> regionLabels = regionRowLabelsFromData(roots);
+        List<String> regionLabels = regionRowLabelsFromData(report, roots);
         addWideValueTable(document, report, "Region", regionLabels, market, "Region");
     }
 
@@ -145,7 +154,9 @@ public class RegionalAnalysisRenderer {
         String yearSpan = yearSpan(report);
         String regionPrefix = chapterPrefix + "." + regionIndex;
 
-        document.add(new AreaBreak());
+        if (regionIndex != 1) {
+            document.add(new AreaBreak());
+        }
         recordSectionHeading(document, toc, "toc." + regionPrefix,
                 new Paragraph(regionPrefix + " " + regionName)
                         .setFont(themeRenderer.semiBold())
@@ -155,7 +166,7 @@ public class RegionalAnalysisRenderer {
 
         String chartSection = regionPrefix + ".1";
         recordSectionHeading(document, toc, "toc." + chartSection,
-                new Paragraph(chartSection + " " + regionName + " " + market + ", " + yearSpan + " Value (USD Million)")
+                new Paragraph(chartSection + " " + regionName + " " + market + ", " + yearSpan + " " + MeasurementLabels.getMeasurementLabel(report))
                         .setFont(themeRenderer.regular())
                         .setFontSize(10)
                         .setFontColor(BodyFigureLayout.NUMBERED_SECTION_HEADING_COLOR)
@@ -164,7 +175,7 @@ public class RegionalAnalysisRenderer {
         document.add(BodyFigureLayout.figureCaption(
                 themeRenderer,
                 nextFigureNumber(),
-                regionName + " " + market + ", " + yearSpan + " Value (USD Million)"));
+                regionName + " " + market + ", " + yearSpan + " " + MeasurementLabels.getMeasurementLabel(report)));
 
         addTrendChart(document, report, market, regionName);
         sourceParagraph(document);
@@ -173,14 +184,14 @@ public class RegionalAnalysisRenderer {
         String countryTableSection = chartSection + ".1";
         recordSectionHeading(document, toc, "toc." + countryTableSection,
                 new Paragraph(countryTableSection + " " + regionName + " " + market
-                        + ", by country, " + yearSpan + " Value (USD Million)")
+                        + ", by country, " + yearSpan + " " + MeasurementLabels.getMeasurementLabel(report))
                         .setFont(themeRenderer.regular())
                         .setFontSize(10)
                         .setFontColor(BodyFigureLayout.NUMBERED_SECTION_HEADING_COLOR)
                         .setKeepWithNext(true));
 
         document.add(new Paragraph("TABLE  " + regionName + " " + market + ", by Country, " + yearSpan
-                + " Value (USD Million)")
+                + " " + MeasurementLabels.getMeasurementLabel(report))
                 .setFont(themeRenderer.semiBold())
                 .setFontSize(11)
                 .setKeepWithNext(true));
@@ -209,14 +220,14 @@ public class RegionalAnalysisRenderer {
             String tablePrefix = dimPrefix + ".1";
             recordSectionHeading(document, toc, "toc." + tablePrefix,
                     new Paragraph(tablePrefix + " " + regionName + " " + market + ", by " + dimName + ", "
-                            + yearSpan + " Value (USD Million)")
+                            + yearSpan + " " + MeasurementLabels.getMeasurementLabel(report))
                             .setFont(themeRenderer.regular())
                             .setFontSize(10)
                             .setFontColor(BodyFigureLayout.NUMBERED_SECTION_HEADING_COLOR)
                             .setKeepWithNext(true));
 
             document.add(new Paragraph("TABLE  " + regionName + " " + market + ", by " + dimName + ", "
-                    + yearSpan + " Value (USD Million)")
+                    + yearSpan + " " + MeasurementLabels.getMeasurementLabel(report))
                     .setFont(themeRenderer.semiBold())
                     .setFontSize(11)
                     .setKeepWithNext(true));
@@ -298,7 +309,7 @@ public class RegionalAnalysisRenderer {
                 String chartSub = sectionNumber + ".1";
                 recordSectionHeading(document, toc, "toc." + chartSub,
                         new Paragraph(chartSub + " " + node.getSegmentName() + " " + market + ", " + yearSpan
-                                + " Value (USD Million)")
+                                + " " + MeasurementLabels.getMeasurementLabel(report))
                                 .setFont(themeRenderer.regular())
                                 .setFontSize(10)
                                 .setFontColor(BodyFigureLayout.NUMBERED_SECTION_HEADING_COLOR)
@@ -307,7 +318,7 @@ public class RegionalAnalysisRenderer {
                 document.add(BodyFigureLayout.figureCaption(
                         themeRenderer,
                         nextFigureNumber(),
-                        node.getSegmentName() + " " + market + ", " + yearSpan + " Value (USD Million)"));
+                        node.getSegmentName() + " " + market + ", " + yearSpan + " " + MeasurementLabels.getMeasurementLabel(report)));
 
                 addTrendChart(document, report, market, node.getSegmentName());
                 sourceParagraph(document);
@@ -318,7 +329,11 @@ public class RegionalAnalysisRenderer {
 
     private void addRegionalShareChart(Document document, SampleReport report, List<MarketSegment> roots)
             throws IOException {
-        List<String> labels = regionRowLabelsFromData(roots);
+        if (PdfRenderPass.isTocIndexing()) {
+            BodyFigureLayout.addChartPlaceholder(document);
+            return;
+        }
+        List<String> labels = regionRowLabelsFromData(report, roots);
         int baseYear = report.getBaseYear();
         int forecastYear = report.getForecastYear();
         String market = report.getKeyName();
@@ -339,13 +354,15 @@ public class RegionalAnalysisRenderer {
             chartYears[i * 2] = baseYear;
             chartYears[i * 2 + 1] = forecastYear;
         }
-        addChartImage(
-                document,
-                chartGenerator.renderComboChart(chartYears, revenues, growth, report.getBaseYear()));
+        addGeneratedChart(document, chartYears, revenues, growth, report.getBaseYear());
     }
 
     private void addTrendChart(Document document, SampleReport report, String market, String entityName)
             throws IOException {
+        if (PdfRenderPass.isTocIndexing()) {
+            BodyFigureLayout.addChartPlaceholder(document);
+            return;
+        }
         double[] values = valueSeriesProvider.yearlyValuesUsdMillion(report, market, entityName);
         int historic = historicYear(report);
         int forecast = report.getForecastYear();
@@ -355,9 +372,23 @@ public class RegionalAnalysisRenderer {
             years[i] = historic + i;
         }
         double[] growth = valueSeriesProvider.yearOverYearGrowthPercent(values);
-        addChartImage(
-                document,
-                chartGenerator.renderComboChart(years, values, growth, report.getBaseYear()));
+        addGeneratedChart(document, years, values, growth, report.getBaseYear());
+    }
+
+    private void addGeneratedChart(
+            Document document,
+            int[] years,
+            double[] revenues,
+            double[] growth,
+            int forecastStartYear) throws IOException {
+        if (PdfRenderPass.isTocIndexing()) {
+            BodyFigureLayout.addChartPlaceholder(document);
+            return;
+        }
+        PdfGenTimer.time("charts.generate", () -> {
+            byte[] png = chartGenerator.renderComboChart(years, revenues, growth, forecastStartYear);
+            BodyFigureLayout.addChartFigure(document, com.itextpdf.io.image.ImageDataFactory.create(png));
+        });
     }
 
     private void addWideValueTable(
@@ -402,45 +433,35 @@ public class RegionalAnalysisRenderer {
                 if (label == null || label.isBlank()) {
                     continue;
                 }
-                double[] series = valueSeriesProvider.yearlyValuesUsdMillion(report, concat(pathPrefix, market, label));
-                rowSeries.add(series);
-                addWideTableDataRow(table, label, series, report);
+                addMaskedNumericRow(table, label, yearCount);
             }
         }
 
-        double[] total = new double[yearCount];
-        for (double[] series : rowSeries) {
-            for (int i = 0; i < yearCount; i++) {
-                total[i] += series[i];
-            }
-        }
-        addWideTableDataRow(table, "Total", total, report);
+        addMaskedNumericRow(table, "Total", yearCount);
         BodyTableStyling.addTableWithSource(
                 document,
                 table,
                 BodyTableStyling.sourceLine(themeRenderer, SOURCE_LINE));
     }
 
-    private void addWideTableDataRow(Table table, String label, double[] series, SampleReport report)
+    private void addMaskedNumericRow(Table table, String label, int yearCount)
             throws IOException {
         table.addCell(BodyTableStyling.labelCell(themeRenderer, label));
-        for (double value : series) {
-            table.addCell(BodyTableStyling.valueCell(themeRenderer, valueSeriesProvider.formatValue(value)));
+        for (int i = 0; i < yearCount; i++) {
+            table.addCell(BodyTableStyling.valueCell(themeRenderer, "xx"));
         }
-        table.addCell(BodyTableStyling.valueCell(
-                themeRenderer,
-                valueSeriesProvider.formatPercent(valueSeriesProvider.cagrPercent(series, report))));
+        table.addCell(BodyTableStyling.valueCell(themeRenderer, "xx%"));
     }
 
-    private List<String> regionRowLabelsFromData(List<MarketSegment> roots) {
-        List<MarketSegment> regions = RegionalOutlineBuilder.resolveRegions(roots);
+    private List<String> regionRowLabelsFromData(SampleReport report, List<MarketSegment> roots) {
+        List<MarketSegment> regions = RegionalOutlineBuilder.resolveRegions(report, roots);
         List<String> labels = new ArrayList<>();
         for (MarketSegment region : regions) {
             if (region != null && region.getSegmentName() != null && !region.getSegmentName().isBlank()) {
                 labels.add(region.getSegmentName());
             }
         }
-        if (!labels.isEmpty()) {
+        if (!labels.isEmpty() || (report != null && report.isRegionalScope())) {
             return labels;
         }
         return RegionalGeoCatalog.defaultRegionOrder();
@@ -489,10 +510,6 @@ public class RegionalAnalysisRenderer {
 
     private void addClasspathImage(Document document, String path) throws IOException {
         BodyFigureLayout.addClasspathFigure(document, path);
-    }
-
-    private void addChartImage(Document document, byte[] png) {
-        BodyFigureLayout.addPngFigure(document, png);
     }
 
     private void sourceParagraph(Document document) throws IOException {

@@ -12,67 +12,82 @@ public class SecurityConfig {
 
         @Bean
         public PasswordEncoder passwordEncoder() {
-
                 return new BCryptPasswordEncoder();
-
         }
 
         @Bean
         public SecurityFilterChain securityFilterChain(
-                        HttpSecurity http) throws Exception {
+                HttpSecurity http) throws Exception {
 
                 http
-                                .csrf(csrf -> csrf.disable())
+                        .csrf(csrf -> csrf.disable())
 
-                                .authorizeHttpRequests(auth -> auth
-                                                .requestMatchers("/api/assets/download/**").permitAll()
-                                                .requestMatchers(
-                                                                "/login",
-                                                                "/css/**",
-                                                                "/js/**",
-                                                                "/images/**")
-                                                .permitAll()
-                                                .requestMatchers("/admin/**", "/api/reports/all", "/api/admin/**")
-                                                .hasRole("ADMIN")
-                                                .requestMatchers("/dashboard", "/api/reports/**", "/api/assets/**",
-                                                                "/api/user/me")
-                                                .authenticated()
-                                                .anyRequest().authenticated())
+                        .authorizeHttpRequests(auth -> auth
 
-                                .formLogin(form -> form
+                                .requestMatchers("/api/assets/download/**")
+                                .permitAll()
 
-                                                .loginPage("/login")
+                                .requestMatchers(
+                                        "/login",
+                                        "/css/**",
+                                        "/js/**",
+                                        "/images/**"
+                                )
+                                .permitAll()
 
-                                                .loginProcessingUrl("/login")
+                                .requestMatchers(
+                                        "/admin/**",
+                                        "/api/reports/all",
+                                        "/api/admin/**"
+                                )
+                                .hasRole("ADMIN")
 
-                                                .defaultSuccessUrl(
-                                                                "/dashboard",
-                                                                true)
+                                .requestMatchers(
+                                        "/dashboard",
+                                        "/api/reports/**",
+                                        "/api/assets/**",
+                                        "/api/user/me",
+                                        "/api/sample-reports/**"
+                                )
+                                .authenticated()
 
-                                                .failureUrl(
-                                                                "/login?error=true")
+                                .anyRequest()
+                                .authenticated()
+                        )
 
-                                                .permitAll()
+                        .formLogin(form -> form
 
+                                .loginPage("/login")
+
+                                .loginProcessingUrl("/login")
+
+                                .defaultSuccessUrl(
+                                        "/dashboard",
+                                        true
                                 )
 
-                                .logout(logout -> logout
+                                .failureUrl(
+                                        "/login?error=true"
+                                )
 
-                                                .logoutUrl("/logout")
+                                .permitAll()
+                        )
 
-                                                .logoutSuccessUrl(
-                                                                "/login?logout=true")
+                        .logout(logout -> logout
 
-                                                .invalidateHttpSession(true)
+                                .logoutUrl("/logout")
 
-                                                .deleteCookies("JSESSIONID")
+                                .logoutSuccessUrl(
+                                        "/login?logout=true"
+                                )
 
-                                                .permitAll()
+                                .invalidateHttpSession(true)
 
-                                );
+                                .deleteCookies("JSESSIONID")
+
+                                .permitAll()
+                        );
 
                 return http.build();
-
         }
-
 }

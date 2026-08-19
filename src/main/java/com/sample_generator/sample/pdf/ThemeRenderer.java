@@ -1,8 +1,8 @@
 package com.sample_generator.sample.pdf;
 
+import com.itextpdf.io.font.PdfEncodings;
 import com.itextpdf.kernel.font.PdfFont;
 import com.itextpdf.kernel.font.PdfFontFactory;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -36,10 +36,9 @@ public class ThemeRenderer {
         PdfFont font = slot.get();
         if (font == null || isFlushed(font)) {
             font = PdfFontFactory.createFont(
-                    new ClassPathResource(classpathLocation)
-                            .getFile()
-                            .getAbsolutePath()
-            );
+                    ClasspathImageCache.bytes(classpathLocation),
+                    PdfEncodings.IDENTITY_H,
+                    PdfFontFactory.EmbeddingStrategy.PREFER_EMBEDDED);
             slot.set(font);
         }
         return font;

@@ -7,6 +7,7 @@ import com.itextpdf.layout.element.Table;
 import com.itextpdf.layout.properties.TextAlignment;
 import com.sample_generator.sample.Entity.MarketSegment;
 import com.sample_generator.sample.Entity.SampleReport;
+import com.sample_generator.sample.pdf.MeasurementLabels;
 import com.sample_generator.sample.pdf.ThemeRenderer;
 import com.sample_generator.sample.pdf.layout.BodyFigureLayout;
 import com.sample_generator.sample.pdf.table.BodyTableStyling;
@@ -93,8 +94,7 @@ public class MarketSegmentRenderer {
                 "CHAPTER " + chapter + "  " + report.getKeyName() + " - " + root.getSegmentName())
                 .setFont(themeRenderer.bold())
                 .setFontSize(16)
-                .setUnderline()
-                .setKeepWithNext(true);
+                .setUnderline();
         toc.recordChapter(document, chapter, chapterHeading);
 
         renderRootBlock(document, report, root, String.valueOf(chapter), toc);
@@ -109,6 +109,7 @@ public class MarketSegmentRenderer {
 
         String segmentName = segment.getSegmentName();
         String market = report.getKeyName();
+        String geo = report.geoScopeLabel();
         int historicYear = historicYear(report);
         int baseYear = report.getBaseYear();
         int forecastYear = report.getForecastYear();
@@ -117,39 +118,40 @@ public class MarketSegmentRenderer {
 
         String overviewNumber = numberPrefix + ".1";
         toc.recordSection(document, "toc." + overviewNumber,
-                new Paragraph(overviewNumber + " Global " + market + " - " + segmentName + " Overview")
+                new Paragraph(overviewNumber + " " + geo + " " + market + " - " + segmentName + " Overview")
                         .setFont(themeRenderer.semiBold())
                         .setFontSize(12)
-                        .setFontColor(BodyFigureLayout.NUMBERED_SECTION_HEADING_COLOR)
-                        .setKeepWithNext(true));
+                        .setFontColor(BodyFigureLayout.NUMBERED_SECTION_HEADING_COLOR));
 
         String shareNumber = numberPrefix + ".2";
         String shareTitle = shareNumber
-                + " Global "
+                + " "
+                + geo
+                + " "
                 + market
                 + " Share, by "
                 + segmentName
                 + ", "
                 + yearPair
-                + " Value (USD Million)";
+                + " " + MeasurementLabels.getMeasurementLabel(report);
 
         toc.recordSection(document, "toc." + shareNumber,
                 new Paragraph(shareTitle)
                         .setFont(themeRenderer.semiBold())
                         .setFontSize(12)
-                        .setFontColor(BodyFigureLayout.NUMBERED_SECTION_HEADING_COLOR)
-                        .setKeepWithNext(true));
+                        .setFontColor(BodyFigureLayout.NUMBERED_SECTION_HEADING_COLOR));
 
         document.add(BodyFigureLayout.figureCaptionUnnumbered(
                 themeRenderer,
                 "FIGURE  ",
-                "Global "
+                geo
+                        + " "
                         + market
                         + " Share, by "
                         + segmentName
                         + ", "
                         + yearPair
-                        + " Value (USD Million)"));
+                        + " " + MeasurementLabels.getMeasurementLabel(report)));
 
         addImage(document, SHARE_CHART_IMAGES[Math.floorMod(segmentName.hashCode(), SHARE_CHART_IMAGES.length)],
                 SHARE_FIGURE_RESERVE_PT);
@@ -165,16 +167,18 @@ public class MarketSegmentRenderer {
         document.add(new AreaBreak());
 
         document.add(new Paragraph(
-                "TABLE  Global "
+                "TABLE  "
+                        + geo
+                        + " "
                         + market
                         + ", by "
                         + segmentName
                         + ", "
                         + yearSpan
-                        + " Value (USD Million)")
+                        + " " + MeasurementLabels.getMeasurementLabel(report))
                 .setFont(themeRenderer.bold())
                 .setFontSize(11)
-                .setKeepWithNext(true));
+                );
 
         addWideValueTable(document, report, segmentName, tableRows, market, segmentName, SOURCE_LINE);
 
@@ -207,8 +211,8 @@ public class MarketSegmentRenderer {
                         new Paragraph(number + " " + child.getSegmentName())
                                 .setFont(themeRenderer.semiBold())
                                 .setFontSize(12)
-                                .setFontColor(BodyFigureLayout.NUMBERED_SECTION_HEADING_COLOR)
-                                .setKeepWithNext(true));
+                                .setFontColor(BodyFigureLayout.NUMBERED_SECTION_HEADING_COLOR));
+
                 childIndex++;
             }
             document.add(new AreaBreak());
@@ -237,8 +241,8 @@ public class MarketSegmentRenderer {
                 new Paragraph(numberPrefix + " " + segment.getSegmentName())
                         .setFont(themeRenderer.semiBold())
                         .setFontSize(12)
-                        .setFontColor(BodyFigureLayout.NUMBERED_SECTION_HEADING_COLOR)
-                        .setKeepWithNext(true));
+                        .setFontColor(BodyFigureLayout.NUMBERED_SECTION_HEADING_COLOR));
+
 
         String chartSection = numberPrefix + ".1";
         toc.recordSection(document, "toc." + chartSection,
@@ -249,11 +253,10 @@ public class MarketSegmentRenderer {
                         + segment.getSegmentName()
                         + ", "
                         + yearSpan
-                        + " Value (USD Million)")
+                        + " " + MeasurementLabels.getMeasurementLabel(report))
                         .setFont(themeRenderer.regular())
                         .setFontSize(10)
-                        .setFontColor(BodyFigureLayout.NUMBERED_SECTION_HEADING_COLOR)
-                        .setKeepWithNext(true));
+                        .setFontColor(BodyFigureLayout.NUMBERED_SECTION_HEADING_COLOR));
 
         document.add(BodyFigureLayout.figureCaptionUnnumbered(
                 themeRenderer,
@@ -263,7 +266,7 @@ public class MarketSegmentRenderer {
                         + segment.getSegmentName()
                         + ", "
                         + yearSpan
-                        + " Value (USD Million)"));
+                        + " " + MeasurementLabels.getMeasurementLabel(report)));
 
         addImage(document,
                 TREND_CHART_IMAGES[Math.floorMod(segment.getSegmentName().hashCode(), TREND_CHART_IMAGES.length)],
@@ -333,34 +336,24 @@ public class MarketSegmentRenderer {
                 if (label == null || label.isBlank()) {
                     continue;
                 }
-                double[] series = valueSeriesProvider.yearlyValuesUsdMillion(report, market, dimension, label);
-                rowSeries.add(series);
-                addWideTableDataRow(table, label, series, report);
+                addMaskedNumericRow(table, label, yearCount);
             }
         }
 
-        double[] total = new double[yearCount];
-        for (double[] series : rowSeries) {
-            for (int i = 0; i < Math.min(yearCount, series.length); i++) {
-                total[i] += series[i];
-            }
-        }
-        addWideTableDataRow(table, "Total", total, report);
+        addMaskedNumericRow(table, "Total", yearCount);
         BodyTableStyling.addTableWithSource(
                 document,
                 table,
                 BodyTableStyling.sourceLine(themeRenderer, sourceText));
     }
 
-    private void addWideTableDataRow(Table table, String label, double[] series, SampleReport report)
+    private void addMaskedNumericRow(Table table, String label, int yearCount)
             throws IOException {
         table.addCell(BodyTableStyling.labelCell(themeRenderer, label));
-        for (double value : series) {
-            table.addCell(BodyTableStyling.valueCell(themeRenderer, valueSeriesProvider.formatValue(value)));
+        for (int i = 0; i < yearCount; i++) {
+            table.addCell(BodyTableStyling.valueCell(themeRenderer, "xx"));
         }
-        table.addCell(BodyTableStyling.valueCell(
-                themeRenderer,
-                valueSeriesProvider.formatPercent(valueSeriesProvider.cagrPercent(series, report))));
+        table.addCell(BodyTableStyling.valueCell(themeRenderer, "xx%"));
     }
 
     private void addImage(Document document, String imagePath, float reservePt) throws IOException {

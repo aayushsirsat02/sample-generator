@@ -1,6 +1,8 @@
 package com.sample_generator.sample.Entity;
 
+import com.sample_generator.sample.pdf.PdfStatus;
 import jakarta.persistence.*;
+import lombok.Getter;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -17,7 +19,7 @@ public class SampleReport {
     @Column(name = "key_id", nullable = false, unique = true)
     private String keyId;
 
-    @Column(name = "key_name", nullable = false)
+    @Column(name = "key_name", nullable = false, length = 1000)
     private String keyName;
 
     @Column(name = "scope")
@@ -47,6 +49,9 @@ public class SampleReport {
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
+    @Column(name = "cagr")
+    private Double cagr;
+
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "created_by", nullable = false)
@@ -71,6 +76,18 @@ public class SampleReport {
     private List<Company> companies = new ArrayList<>();
 
 
+
+    @Getter
+    @OneToOne(
+            mappedBy = "sampleReport",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    private SampleReportSource source;
+
+    public void setSource(SampleReportSource source) {
+        this.source = source;
+    }
     /*
      * NEW FIELDS — Market Values & Category
      *
@@ -96,6 +113,13 @@ public class SampleReport {
 
     @Column(name = "is_edited")
     private Boolean isEdited = false;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "pdf_status", length = 20)
+    private PdfStatus pdfStatus;
+
+    @Column(name = "pdf_error", length = 2000)
+    private String pdfError;
 
     @PrePersist
     public void prePersist() {
@@ -140,6 +164,25 @@ public class SampleReport {
 
     public void setScopeName(String scopeName) {
         this.scopeName = scopeName;
+    }
+
+    public boolean isCountryScope() {
+        return scope != null && "country".equalsIgnoreCase(scope.trim());
+    }
+
+    public boolean isRegionalScope() {
+        return scope != null && "regional".equalsIgnoreCase(scope.trim());
+    }
+
+    public String geoScopeLabel() {
+        if ((isCountryScope() || isRegionalScope()) && scopeName != null && !scopeName.isBlank()) {
+            return scopeName.trim();
+        }
+        return "Global";
+    }
+
+    public String geoScopeLabelUpper() {
+        return geoScopeLabel().toUpperCase(java.util.Locale.ROOT);
     }
 
     public String getValueVolume() {
@@ -268,5 +311,29 @@ public class SampleReport {
 
     public void setIsEdited(Boolean isEdited) {
         this.isEdited = isEdited;
+    }
+
+    public Double getCagr() {
+        return cagr;
+    }
+
+    public void setCagr(Double cagr) {
+        this.cagr = cagr;
+    }
+
+    public PdfStatus getPdfStatus() {
+        return pdfStatus;
+    }
+
+    public void setPdfStatus(PdfStatus pdfStatus) {
+        this.pdfStatus = pdfStatus;
+    }
+
+    public String getPdfError() {
+        return pdfError;
+    }
+
+    public void setPdfError(String pdfError) {
+        this.pdfError = pdfError;
     }
 }

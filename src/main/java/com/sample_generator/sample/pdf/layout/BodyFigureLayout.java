@@ -1,7 +1,6 @@
 package com.sample_generator.sample.pdf.layout;
 
 import com.itextpdf.io.image.ImageData;
-import com.itextpdf.io.image.ImageDataFactory;
 import com.itextpdf.kernel.colors.ColorConstants;
 import com.itextpdf.kernel.colors.DeviceRgb;
 import com.itextpdf.kernel.geom.PageSize;
@@ -11,8 +10,11 @@ import com.itextpdf.layout.element.Image;
 import com.itextpdf.layout.element.Paragraph;
 import com.itextpdf.layout.element.Text;
 import com.itextpdf.layout.properties.HorizontalAlignment;
+import com.sample_generator.sample.pdf.ClasspathImageCache;
+import com.sample_generator.sample.pdf.PdfDocumentImageCache;
+import com.sample_generator.sample.pdf.PdfGenTimer;
+import com.sample_generator.sample.pdf.PdfRenderPass;
 import com.sample_generator.sample.pdf.ThemeRenderer;
-import org.springframework.core.io.ClassPathResource;
 
 import java.io.IOException;
 
@@ -26,6 +28,10 @@ public final class BodyFigureLayout {
     public static final DeviceRgb FIGURE_LABEL_COLOR = new DeviceRgb(0, 32, 96);
     /** Golden PDF numbered section/subsection heading color (#0070C0). */
     public static final DeviceRgb NUMBERED_SECTION_HEADING_COLOR = new DeviceRgb(0, 112, 192);
+
+    /** Native size of generated regional combo charts (must match the chart generator). */
+    public static final float GENERATED_CHART_NATIVE_WIDTH = 1200f;
+    public static final float GENERATED_CHART_NATIVE_HEIGHT = 480f;
 
     /** Leave room for caption + source within the body content band. */
     private static final float FIGURE_BLOCK_OVERHEAD_PT = 56f;
@@ -92,13 +98,30 @@ public final class BodyFigureLayout {
 
     public static void addClasspathFigure(Document document, String classpathPath, float additionalReservePt)
             throws IOException {
-        ClassPathResource resource = new ClassPathResource(classpathPath);
-        ImageData imageData = ImageDataFactory.create(resource.getInputStream().readAllBytes());
-        addScaledFigure(document, new Image(imageData), additionalReservePt);
+        PdfGenTimer.time("images.classpath", () -> {
+            ImageData imageData = ClasspathImageCache.get(classpathPath);
+            if (PdfRenderPass.isTocIndexing()) {
+                addScaledPlaceholder(document, imageData.getWidth(), imageData.getHeight(), additionalReservePt);
+                return;
+            }
+            addScaledFigure(document, PdfDocumentImageCache.image(classpathPath, imageData), additionalReservePt);
+        });
     }
 
     public static void addPngFigure(Document document, byte[] pngBytes) {
-        addScaledFigure(document, new Image(ImageDataFactory.create(pngBytes)), 0f);
+        addChartFigure(document, com.itextpdf.io.image.ImageDataFactory.create(pngBytes));
+    }
+
+    public static void addChartFigure(Document document, ImageData imageData) {
+        if (PdfRenderPass.isTocIndexing()) {
+            addChartPlaceholder(document);
+            return;
+        }
+        addScaledFigure(document, new Image(imageData), 0f);
+    }
+
+    public static void addChartPlaceholder(Document document) {
+        addScaledPlaceholder(document, GENERATED_CHART_NATIVE_WIDTH, GENERATED_CHART_NATIVE_HEIGHT, 0f);
     }
 
     private static void addScaledFigure(Document document, Image image, float additionalReservePt) {
@@ -108,6 +131,40 @@ public final class BodyFigureLayout {
         block.setKeepTogether(true);
         block.setKeepWithNext(true);
         block.add(scaleForBody(image, additionalReservePt));
+        document.add(block);
+    }
+
+    private static void addScaledPlaceholder(
+            Document document,
+            float nativeWidth,
+            float nativeHeight,
+            float additionalReservePt) {
+        float maxWidth = contentWidthPt();
+        float reserve = FIGURE_BLOCK_OVERHEAD_PT + Math.max(0f, additionalReservePt);
+        float maxHeight = Math.max(110f, contentHeightPt() - reserve);
+
+        float width;
+        float height;
+        if (nativeWidth > 0f && nativeHeight > 0f) {
+            float scale = Math.min(1f, Math.min(maxWidth / nativeWidth, maxHeight / nativeHeight));
+            width = nativeWidth * scale;
+            height = nativeHeight * scale;
+        } else {
+            width = maxWidth;
+            height = maxHeight;
+        }
+
+        Div figure = new Div();
+        figure.setWidth(width);
+        figure.setHeight(height);
+        figure.setHorizontalAlignment(HorizontalAlignment.CENTER);
+        figure.setMarginTop(FIGURE_TOP_MARGIN_PT);
+        figure.setMarginBottom(FIGURE_BOTTOM_MARGIN_PT);
+
+        Div block = new Div();
+        block.setKeepTogether(true);
+        block.setKeepWithNext(true);
+        block.add(figure);
         document.add(block);
     }
 
@@ -150,42 +207,59 @@ public final class BodyFigureLayout {
     }
 
     /**
-     * Render a figure with a custom maximum height limit.
-     */
-    /**
      * Render a figure with a strict height cap (e.g., 10f, 50f, 80f).
      */
-    public static void addClasspathFigureWithMaxHeight(Document document, String classpathPath, float maxHeightPt) throws IOException {
-        ClassPathResource resource = new ClassPathResource(classpathPath);
-        ImageData imageData = ImageDataFactory.create(resource.getInputStream().readAllBytes());
-        Image image = new Image(imageData);
+    public static void addClasspathFigureWithMaxHeight(Document document, String classpathPath, float maxHeightPt)
+            throws IOException {
+        PdfGenTimer.time("images.classpathMaxHeight", () -> {
+            ImageData imageData = ClasspathImageCache.get(classpathPath);
+            float nativeWidth = imageData.getWidth();
+            float nativeHeight = imageData.getHeight();
 
-        float nativeWidth = image.getImageWidth();
-        float nativeHeight = image.getImageHeight();
+            if (PdfRenderPass.isTocIndexing()) {
+                Div figure = new Div();
+                if (nativeWidth > 0f && nativeHeight > 0f) {
+                    float ratio = maxHeightPt / nativeHeight;
+                    figure.setHeight(maxHeightPt);
+                    figure.setWidth(nativeWidth * ratio);
+                } else {
+                    figure.setHeight(maxHeightPt);
+                }
+                figure.setHorizontalAlignment(HorizontalAlignment.CENTER);
+                figure.setMarginTop(FIGURE_TOP_MARGIN_PT);
+                figure.setMarginBottom(FIGURE_BOTTOM_MARGIN_PT);
+                Div block = new Div();
+                block.setKeepTogether(true);
+                block.setHorizontalAlignment(HorizontalAlignment.CENTER);
+                block.add(figure);
+                document.add(block);
+                return;
+            }
 
-        if (nativeWidth > 0f && nativeHeight > 0f) {
-            // Calculate proportional width based on target maxHeightPt
-            float ratio = maxHeightPt / nativeHeight;
-            float targetWidth = nativeWidth * ratio;
+            Image image = PdfDocumentImageCache.image(classpathPath, imageData);
 
-            image.setHeight(maxHeightPt);
-            image.setWidth(targetWidth);
-            image.setAutoScale(false); // Force iText NOT to auto-scale back up
-        } else {
-            image.setMaxHeight(maxHeightPt);
-            image.setAutoScaleWidth(true);
-        }
+            if (nativeWidth > 0f && nativeHeight > 0f) {
+                float ratio = maxHeightPt / nativeHeight;
+                float targetWidth = nativeWidth * ratio;
 
-        image.setHorizontalAlignment(HorizontalAlignment.CENTER);
-        image.setMarginTop(FIGURE_TOP_MARGIN_PT);
-        image.setMarginBottom(FIGURE_BOTTOM_MARGIN_PT);
+                image.setHeight(maxHeightPt);
+                image.setWidth(targetWidth);
+                image.setAutoScale(false);
+            } else {
+                image.setMaxHeight(maxHeightPt);
+                image.setAutoScaleWidth(true);
+            }
 
-        Div block = new Div();
-        block.setKeepTogether(true);
-        //block.setKeepWithNext(true);
-        block.setHorizontalAlignment(HorizontalAlignment.CENTER);
-        block.add(image);
+            image.setHorizontalAlignment(HorizontalAlignment.CENTER);
+            image.setMarginTop(FIGURE_TOP_MARGIN_PT);
+            image.setMarginBottom(FIGURE_BOTTOM_MARGIN_PT);
 
-        document.add(block);
+            Div block = new Div();
+            block.setKeepTogether(true);
+            block.setHorizontalAlignment(HorizontalAlignment.CENTER);
+            block.add(image);
+
+            document.add(block);
+        });
     }
 }

@@ -26,10 +26,10 @@
     --shadow-lg: 0 20px 50px -12px rgba(0,0,0,0.18);
     --shadow-glow: 0 0 24px rgba(79,70,229,0.4);
 
-    --radius-md: 0.5rem;
-    --radius-lg: 0.75rem;
-    --radius-xl: 1rem;
-    --radius-full: 9999px;
+    --radius-md: 0.0rem;
+    --radius-lg: 0.0rem;
+    --radius-xl: 0rem;
+    --radius-full: 0px;
 
     --transition-base: 250ms cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -86,7 +86,7 @@ body::after {
     max-width: 440px;
     background: rgba(255, 255, 255, 0.98);
     padding: 48px 44px;
-    border-radius: calc(var(--radius-xl) + 4px);
+    /*border-radius: calc(var(--radius-xl) + 4px);*/
     border: 1px solid rgba(255, 255, 255, 0.5);
     box-shadow: var(--shadow-lg);
     z-index: 2;
@@ -110,7 +110,7 @@ body::after {
     height: 44px;
     background: linear-gradient(135deg, var(--brand-primary), var(--brand-secondary));
     color: white;
-    border-radius: var(--radius-md);
+    /*border-radius: var(--radius-md);*/
     display: flex;
     align-items: center;
     justify-content: center;
@@ -155,7 +155,7 @@ body::after {
     display: flex;
     background: #f1f5f9;
     padding: 4px;
-    border-radius: var(--radius-lg);
+    /*border-radius: var(--radius-lg);*/
     margin-bottom: 28px;
     border: 1px solid var(--border-color);
 }
@@ -164,7 +164,7 @@ body::after {
     width: 50%;
     padding: 10px;
     border: none;
-    border-radius: var(--radius-md);
+    /*border-radius: var(--radius-md);*/
     background: transparent;
     color: var(--text-muted);
     font-size: 0.875rem;

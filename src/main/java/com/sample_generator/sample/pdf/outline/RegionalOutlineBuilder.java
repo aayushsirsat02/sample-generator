@@ -2,6 +2,7 @@ package com.sample_generator.sample.pdf.outline;
 
 import com.sample_generator.sample.Entity.MarketSegment;
 import com.sample_generator.sample.Entity.SampleReport;
+import com.sample_generator.sample.pdf.MeasurementLabels;
 import com.sample_generator.sample.pdf.regional.RegionalGeoCatalog;
 
 import java.util.ArrayList;
@@ -21,22 +22,25 @@ public final class RegionalOutlineBuilder {
         String market = report.getKeyName();
         String chapterPrefix = String.valueOf(chapter);
 
-        entries.add(entry(
-                chapterPrefix + ".1",
-                "Global " + market + " - Regional Overview",
-                1,
-                "toc." + chapterPrefix + ".1"));
-        entries.add(entry(
-                chapterPrefix + ".2",
-                "Global " + market + " Share, by Region, " + yearPair(report) + " Value (USD Million)",
-                1,
-                "toc." + chapterPrefix + ".2"));
+        boolean regionalOnly = report != null && report.isRegionalScope();
+        if (!regionalOnly) {
+            entries.add(entry(
+                    chapterPrefix + ".1",
+                    "Global " + market + " - Regional Overview",
+                    1,
+                    "toc." + chapterPrefix + ".1"));
+            entries.add(entry(
+                    chapterPrefix + ".2",
+                    "Global " + market + " Share, by Region, " + yearPair(report) + " " + MeasurementLabels.getMeasurementLabel(report),
+                    1,
+                    "toc." + chapterPrefix + ".2"));
+        }
 
-        List<MarketSegment> regions = resolveRegions(roots);
+        List<MarketSegment> regions = resolveRegions(report, roots);
         List<MarketSegment> segmentDimensions = segmentDimensions(roots);
-        int regionIndex = 3;
+        int regionIndex = regionalOnly ? 1 : 3;
 
-        if (regions.isEmpty()) {
+        if (regions.isEmpty() && !regionalOnly) {
             for (String regionName : RegionalGeoCatalog.defaultRegionOrder()) {
                 appendRegionToc(entries, report, regionName, List.of(), segmentDimensions, chapter, regionIndex++);
             }
@@ -76,12 +80,12 @@ public final class RegionalOutlineBuilder {
 
         entries.add(entry(
                 regionPrefix + ".1",
-                regionName + " " + market + ", " + yearSpan + " Value (USD Million)",
+                regionName + " " + market + ", " + yearSpan + " " + MeasurementLabels.getMeasurementLabel(report),
                 2,
                 "toc." + regionPrefix + ".1"));
         entries.add(entry(
                 regionPrefix + ".1.1",
-                regionName + " " + market + ", by country, " + yearSpan + " Value (USD Million)",
+                regionName + " " + market + ", by country, " + yearSpan + " " + MeasurementLabels.getMeasurementLabel(report),
                 3,
                 "toc." + regionPrefix + ".1.1"));
 
@@ -98,7 +102,7 @@ public final class RegionalOutlineBuilder {
                     "toc." + regionPrefix + "." + section));
             entries.add(entry(
                     regionPrefix + "." + section + ".1",
-                    regionName + " " + market + ", by " + dim + ", " + yearSpan + " Value (USD Million)",
+                    regionName + " " + market + ", by " + dim + ", " + yearSpan + " " + MeasurementLabels.getMeasurementLabel(report),
                     3,
                     "toc." + regionPrefix + "." + section + ".1"));
             section++;
@@ -145,11 +149,22 @@ public final class RegionalOutlineBuilder {
             if (children != null && !children.isEmpty()) {
                 appendGeoTocEntries(entries, children, sectionNumber, 1, market, report, level + 1);
             } else {
-                String chartTitle = node.getSegmentName() + " " + market + ", " + yearSpan(report) + " Value (USD Million)";
+                String chartTitle = node.getSegmentName() + " " + market + ", " + yearSpan(report) + " " + MeasurementLabels.getMeasurementLabel(report);
                 entries.add(entry(sectionNumber + ".1", chartTitle, level + 1, "toc." + sectionNumber + ".1"));
             }
             section++;
         }
+    }
+
+    public static List<MarketSegment> resolveRegions(SampleReport report, List<MarketSegment> roots) {
+        if (report != null && report.isRegionalScope()) {
+            String regionName = report.getScopeName();
+            if (regionName == null || regionName.isBlank()) {
+                return List.of();
+            }
+            return List.of(stubRegion(regionName.trim()));
+        }
+        return resolveRegions(roots);
     }
 
     public static List<MarketSegment> resolveRegions(List<MarketSegment> roots) {
@@ -160,6 +175,13 @@ public final class RegionalOutlineBuilder {
             return regionRoot.getChildren();
         }
         return List.of();
+    }
+
+    private static MarketSegment stubRegion(String regionName) {
+        MarketSegment stub = new MarketSegment();
+        stub.setSegmentName(regionName);
+        stub.setChildren(stubCountries(regionName));
+        return stub;
     }
 
     public static MarketSegment findRegionRoot(List<MarketSegment> roots) {

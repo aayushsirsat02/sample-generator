@@ -2,6 +2,7 @@ package com.sample_generator.sample.pdf.outline;
 
 import com.sample_generator.sample.Entity.MarketSegment;
 import com.sample_generator.sample.Entity.SampleReport;
+import com.sample_generator.sample.pdf.MeasurementLabels;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,6 +14,7 @@ public final class ReportChapterLayout {
 
     private final int segmentChapterCount;
     private final int regionalChapter;
+    private final boolean includeRegionalChapter;
     private final List<String> segmentChapterTitles;
     private final List<TocOutlineEntry> regionalTocEntries;
     private final List<TocOutlineEntry> segmentTocEntries;
@@ -21,11 +23,13 @@ public final class ReportChapterLayout {
             int segmentChapterCount,
             List<String> segmentChapterTitles,
             List<TocOutlineEntry> segmentTocEntries,
-            List<TocOutlineEntry> regionalTocEntries) {
+            List<TocOutlineEntry> regionalTocEntries,
+            boolean includeRegionalChapter) {
         this.segmentChapterCount = segmentChapterCount;
         this.segmentChapterTitles = segmentChapterTitles;
         this.segmentTocEntries = segmentTocEntries;
         this.regionalTocEntries = regionalTocEntries;
+        this.includeRegionalChapter = includeRegionalChapter;
         this.regionalChapter = FIRST_SEGMENT_CHAPTER + segmentChapterCount;
     }
 
@@ -44,9 +48,11 @@ public final class ReportChapterLayout {
             }
         }
         int regionalChapter = FIRST_SEGMENT_CHAPTER + count;
-        List<TocOutlineEntry> regionalEntries =
-                RegionalOutlineBuilder.buildTocEntries(report, roots, regionalChapter);
-        return new ReportChapterLayout(count, titles, segmentEntries, regionalEntries);
+        boolean includeRegional = report == null || !report.isCountryScope();
+        List<TocOutlineEntry> regionalEntries = includeRegional
+                ? RegionalOutlineBuilder.buildTocEntries(report, roots, regionalChapter)
+                : List.of();
+        return new ReportChapterLayout(count, titles, segmentEntries, regionalEntries, includeRegional);
     }
 
     private static List<TocOutlineEntry> buildSegmentTocEntries(
@@ -55,6 +61,7 @@ public final class ReportChapterLayout {
             int chapter) {
         List<TocOutlineEntry> entries = new ArrayList<>();
         String market = report.getKeyName();
+        String geo = report.geoScopeLabel();
         String chapterPrefix = String.valueOf(chapter);
         String yearPair = report.getBaseYear() + " & " + report.getForecastYear();
         int historic = report.getHistoricYear() != null ? report.getHistoricYear() : report.getBaseYear();
@@ -62,12 +69,12 @@ public final class ReportChapterLayout {
 
         entries.add(new TocOutlineEntry(
                 chapterPrefix + ".1",
-                "Global " + market + " - " + root.getSegmentName() + " Overview",
+                geo + " " + market + " - " + root.getSegmentName() + " Overview",
                 1,
                 "toc." + chapterPrefix + ".1"));
         entries.add(new TocOutlineEntry(
                 chapterPrefix + ".2",
-                "Global " + market + " Share, by " + root.getSegmentName() + ", " + yearPair + " Value (USD Million)",
+                geo + " " + market + " Share, by " + root.getSegmentName() + ", " + yearPair + " " + MeasurementLabels.getMeasurementLabel(report),
                 1,
                 "toc." + chapterPrefix + ".2"));
 
@@ -89,8 +96,8 @@ public final class ReportChapterLayout {
                 if (firstChild) {
                     entries.add(new TocOutlineEntry(
                             childPrefix + ".1",
-                            "Global " + market + " by " + child.getSegmentName() + ", " + yearSpan
-                                    + " Value (USD Million)",
+                            geo + " " + market + " by " + child.getSegmentName() + ", " + yearSpan
+                                    + " " + MeasurementLabels.getMeasurementLabel(report),
                             2,
                             "toc." + childPrefix + ".1"));
                     firstChild = false;
@@ -124,8 +131,12 @@ public final class ReportChapterLayout {
         return destinationForChapter(regionalChapter);
     }
 
+    public boolean includeRegionalChapter() {
+        return includeRegionalChapter;
+    }
+
     public int competitiveChapter() {
-        return regionalChapter + 1;
+        return includeRegionalChapter ? regionalChapter + 1 : regionalChapter;
     }
 
     public int companyProfilesChapter() {

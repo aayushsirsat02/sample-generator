@@ -38,6 +38,12 @@ public class CreateSampleReportRequest {
 
     private String category;
 
+    private String measurementType;
+
+    private String currency;
+
+    private String measurementUnit;
+
     private List<SegmentRequest> segments = new ArrayList<>();
 
     private List<CompanyRequest> companies = new ArrayList<>();
@@ -157,6 +163,31 @@ public class CreateSampleReportRequest {
 
     public void setCategory(String category) {
         this.category = category;
+    }
+
+
+    public String getMeasurementType() {
+        return measurementType;
+    }
+
+    public void setMeasurementType(String measurementType) {
+        this.measurementType = measurementType;
+    }
+
+    public String getCurrency() {
+        return currency;
+    }
+
+    public void setCurrency(String currency) {
+        this.currency = currency;
+    }
+
+    public String getMeasurementUnit() {
+        return measurementUnit;
+    }
+
+    public void setMeasurementUnit(String measurementUnit) {
+        this.measurementUnit = measurementUnit;
     }
 
 

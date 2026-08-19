@@ -358,6 +358,27 @@
 
                     </div>
 
+                    <!-- IMPORT FROM URL -->
+                    <div class="content-card" style="margin-top: 16px;">
+                        <div class="form-section-header">
+                            <div>
+                                <h2><i class="fa-solid fa-cloud-arrow-down"></i> Import Report from URL</h2>
+                                <p class="content-card-description">Import a sample report using a public URL.</p>
+                            </div>
+                        </div>
+
+                        <div style="display:flex;gap:8px;align-items:center;margin-top:12px;">
+                            <input type="text" id="importReportUrl" class="form-control" placeholder="Enter report URL"
+                                style="flex:1;">
+                            <button type="button" class="btn-primary" id="fetchReportBtn"
+                                onclick="importReportFromUrl()">Fetch Report</button>
+                        </div>
+
+                        <div style="margin-top:8px;">
+                            <small id="importReportStatus" class="field-hint" style="color:#b00020"></small>
+                        </div>
+                    </div>
+
 
                 </section>
 
@@ -392,7 +413,7 @@
                      CREATE REPORT FORM
                 ====================================================== -->
 
-                    <form id="createReportForm">
+                    <form id="createReportForm" class="report-builder">
 
 
                         <!-- =================================================
@@ -485,7 +506,7 @@
 
                                 <!-- SCOPE NAME -->
 
-                                <div class="form-group">
+                                <div class="form-group" id="scopeNameGroup">
 
                                     <label for="scopeName">
                                         Scope Name
@@ -503,7 +524,7 @@
                                 <div class="form-group">
 
                                     <label for="valueVolume">
-                                        Value / Volume
+                                        Measurement Type
                                     </label>
 
                                     <select id="valueVolume" class="form-control">
@@ -522,6 +543,24 @@
 
 
 
+                                <!-- CURRENCY -->
+
+                                <div class="form-group">
+
+                                    <label for="currency">
+                                        Currency
+                                    </label>
+
+                                    <select id="currency" class="form-control">
+
+                                        <option value="USD">USD</option>
+
+                                    </select>
+
+                                </div>
+
+
+
                                 <!-- UNIT -->
 
                                 <div class="form-group">
@@ -530,7 +569,13 @@
                                         Unit
                                     </label>
 
-                                    <input type="text" id="unit" class="form-control" placeholder="e.g. USD Billion">
+                                    <select id="unit" class="form-control">
+
+                                        <option value="Million">Million</option>
+
+                                        <option value="Billion">Billion</option>
+
+                                    </select>
 
                                 </div>
 
@@ -548,18 +593,18 @@
 
                                         <option value="English">English</option>
                                         <option value="Japanese">Japanese</option>
-                                        <option value="Korean">Korean</option>
-                                        <option value="French">French</option>
-                                        <option value="Italian">Italian</option>
-                                        <option value="Chinese">Chinese</option>
-                                        <option value="Vietnamese">Vietnamese</option>
-                                        <option value="Tagalog">Tagalog</option>
-                                        <option value="Malay">Malay</option>
-                                        <option value="Arabic">Arabic</option>
-                                        <option value="Spanish">Spanish</option>
-                                        <option value="Turkish">Turkish</option>
-                                        <option value="Russian">Russian</option>
-                                        <option value="Portuguese">Portuguese</option>
+<!--                                        <option value="Korean">Korean</option>-->
+<!--                                        <option value="French">French</option>-->
+<!--                                        <option value="Italian">Italian</option>-->
+<!--                                        <option value="Chinese">Chinese</option>-->
+<!--                                        <option value="Vietnamese">Vietnamese</option>-->
+<!--                                        <option value="Tagalog">Tagalog</option>-->
+<!--                                        <option value="Malay">Malay</option>-->
+<!--                                        <option value="Arabic">Arabic</option>-->
+<!--                                        <option value="Spanish">Spanish</option>-->
+<!--                                        <option value="Turkish">Turkish</option>-->
+<!--                                        <option value="Russian">Russian</option>-->
+<!--                                        <option value="Portuguese">Portuguese</option>-->
 
                                     </select>
 
@@ -661,25 +706,49 @@
                         <div class="content-card report-form-card">
 
                             <div class="form-section-header">
-
                                 <div>
                                     <h2><i class="fa-solid fa-sitemap"></i> Market Segments</h2>
+                                    <p class="section-subtitle">Root segments as cards. Use + to nest subsegments.</p>
                                 </div>
-
                             </div>
 
-
-                            <!-- SEGMENTS WILL BE GENERATED HERE -->
-
-                            <div id="segmentsContainer" class="segments-container">
+                            <div class="builder-segments-grid">
+                                <div id="segmentsContainer" class="segments-container"></div>
+                                <button type="button" class="builder-add-tile add-root-segment-button"
+                                    onclick="addRootSegment()" title="Add Segment">
+                                    <i class="fa-solid fa-plus"></i>
+                                    <span>Add Segment</span>
+                                </button>
                             </div>
 
+                        </div>
 
-                            <button type="button" class="add-root-segment-button" onclick="addRootSegment()">
 
-                                <i class="fa-solid fa-plus"></i> Add Segment
+                        <!-- =================================================
+                         02b. REGIONAL
+                    ================================================== -->
 
-                            </button>
+                        <div class="content-card report-form-card" id="regionalSection" hidden>
+
+                            <div class="form-section-header">
+                                <div>
+                                    <h2><i class="fa-solid fa-globe"></i> Regional</h2>
+                                    <p class="section-subtitle">Select one region. Countries update from that region.</p>
+                                </div>
+                            </div>
+
+                            <div class="regional-panel">
+                                <div class="form-group" style="margin-bottom: 10px;">
+                                    <label for="regionSelect">Region</label>
+                                    <select id="regionSelect" class="form-control">
+                                        <option value="">Select Region</option>
+                                    </select>
+                                </div>
+                                <div class="form-group" style="margin-bottom: 0;">
+                                    <label>Countries</label>
+                                    <div id="regionCountries" class="region-country-chips"></div>
+                                </div>
+                            </div>
 
                         </div>
 
@@ -691,31 +760,20 @@
                         <div class="content-card report-form-card">
 
                             <div class="form-section-header">
-
-                                <div class="mb-1">
-
+                                <div>
                                     <h2><i class="fa-solid fa-building"></i> Companies</h2>
-
-                                    <p>
-                                        Add companies associated with this report.
-                                    </p>
-
+                                    <p class="section-subtitle">Add companies associated with this report.</p>
                                 </div>
-
                             </div>
 
-
-                            <!-- COMPANIES WILL BE GENERATED HERE -->
-
-                            <div id="companiesContainer" class="companies-container">
+                            <div class="builder-companies-grid">
+                                <div id="companiesContainer" class="companies-container"></div>
+                                <button type="button" class="builder-add-tile add-root-segment-button"
+                                    onclick="addCompany()" title="Add Company">
+                                    <i class="fa-solid fa-plus"></i>
+                                    <span>Add Company</span>
+                                </button>
                             </div>
-
-
-                            <button type="button" class="add-root-segment-button" onclick="addCompany()">
-
-                                <i class="fa-solid fa-plus"></i> Add Company
-
-                            </button>
 
                         </div>
 
@@ -794,6 +852,9 @@
                             </button>
                         </div>
 
+                        <div style="margin-top: 10px;">
+                            <small id="reportActionStatus" class="field-hint"></small>
+                        </div>
 
                         <!-- REPORTS TABLE -->
 
@@ -894,7 +955,7 @@
                         <!-- EDIT REPORT CONTENT (Redesigned)       -->
                         <!-- ====================================== -->
 
-                        <div id="editReportContent" class="edit-content-layout-redesigned"
+                        <div id="editReportContent" class="edit-content-layout-redesigned report-builder"
                             style="display: none; flex-direction: column; gap: 24px; width: 100%;">
 
                             <!-- 00. OVERVIEW BANNER CARD -->
@@ -927,23 +988,26 @@
                                     </div>
                                     <div class="download-buttons-horizontal">
                                         <button type="button" class="download-btn download-btn-word"
-                                            id="downloadWordBtn" onclick="downloadWordReportCurrent()"
-                                            title="Download Word (.docx)">
-                                            <i class="fa-solid fa-file-word"></i>
-                                            <span>Word</span>
+                                            id="downloadWordBtn" onclick="downloadPdfReportCurrent()"
+                                            title="Download PDF">
+                                            <i id="pdfDownloadIcon" class="fa-solid fa-file-pdf"></i>
+                                            <span id="pdfDownloadText">PDF</span>
                                         </button>
 
-                                        <button type="button" class="download-btn download-btn-ppt" id="downloadPptBtn"
-                                            onclick="downloadPptReportCurrent()" title="Download PowerPoint (.pptx)">
-                                            <i class="fa-solid fa-file-powerpoint"></i>
-                                            <span>PPT</span>
-                                        </button>
+                                        <div id="pdfDownloadError" class="download-error-message" role="alert" hidden>
+                                        </div>
 
-                                    </div>
-                                </div>
-                            </div>
+                                        <!--          <button type="button" class="download-btn download-btn-ppt" id="downloadPptBtn"
+                                                      onclick="downloadPptReportCurrent()" title="Download PowerPoint (.pptx)">
+                                                      <i class="fa-solid fa-file-powerpoint"></i>
+                                                      <span>PPT</span>
+                                                  </button> -->
 
-                            <!-- 01. REPORT INFORMATION -->
+                                              </div>
+                                          </div>
+                                      </div>
+
+                                       <!--01. REPORT INFORMATION -->
                             <div class="content-card report-form-card">
                                 <div class="form-section-header">
                                     <div>
@@ -978,14 +1042,14 @@
                                         </select>
                                     </div>
 
-                                    <div class="form-group">
+                                    <div class="form-group" id="editScopeNameGroup">
                                         <label for="editScopeName">Scope Name</label>
                                         <input type="text" id="editScopeName" class="form-control"
                                             placeholder="e.g. North America">
                                     </div>
 
                                     <div class="form-group">
-                                        <label for="editValueVolume">Value / Volume</label>
+                                        <label for="editValueVolume">Measurement Type</label>
                                         <select id="editValueVolume" class="form-control">
                                             <option value="Value">Value</option>
                                             <option value="Volume">Volume</option>
@@ -993,9 +1057,18 @@
                                     </div>
 
                                     <div class="form-group">
+                                        <label for="editCurrency">Currency</label>
+                                        <select id="editCurrency" class="form-control">
+                                            <option value="USD">USD</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="form-group">
                                         <label for="editUnit">Unit</label>
-                                        <input type="text" id="editUnit" class="form-control"
-                                            placeholder="e.g. USD Billion">
+                                        <select id="editUnit" class="form-control">
+                                            <option value="Million">Million</option>
+                                            <option value="Billion">Billion</option>
+                                        </select>
                                     </div>
 
                                     <div class="form-group">
@@ -1064,16 +1137,41 @@
                                 <div class="form-section-header">
                                     <div>
                                         <h2><i class="fa-solid fa-sitemap"></i> Market Segments</h2>
+                                        <p class="section-subtitle">Root segments as cards. Use + to nest subsegments.</p>
                                     </div>
                                 </div>
 
-                                <div id="editSegmentsContainer" class="segments-container">
-                                    <!-- Generated by JS -->
+                                <div class="builder-segments-grid">
+                                    <div id="editSegmentsContainer" class="segments-container"></div>
+                                    <button type="button" class="builder-add-tile add-root-segment-button"
+                                        onclick="addEditRootSegment()" title="Add Segment">
+                                        <i class="fa-solid fa-plus"></i>
+                                        <span>Add Segment</span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- 02b. REGIONAL -->
+                            <div class="content-card report-form-card" id="editRegionalSection" hidden>
+                                <div class="form-section-header">
+                                    <div>
+                                        <h2><i class="fa-solid fa-globe"></i> Regional</h2>
+                                        <p class="section-subtitle">Select one region. Countries update from that region.</p>
+                                    </div>
                                 </div>
 
-                                <button type="button" class="add-root-segment-button" onclick="addEditRootSegment()">
-                                    <i class="fa-solid fa-plus"></i> Add Segment
-                                </button>
+                                <div class="regional-panel">
+                                    <div class="form-group" style="margin-bottom: 10px;">
+                                        <label for="editRegionSelect">Region</label>
+                                        <select id="editRegionSelect" class="form-control">
+                                            <option value="">Select Region</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group" style="margin-bottom: 0;">
+                                        <label>Countries</label>
+                                        <div id="editRegionCountries" class="region-country-chips"></div>
+                                    </div>
+                                </div>
                             </div>
 
                             <!-- 03. COMPANIES -->
@@ -1081,17 +1179,18 @@
                                 <div class="form-section-header">
                                     <div>
                                         <h2><i class="fa-solid fa-building"></i> Companies</h2>
-                                        <p>Add companies associated with this report.</p>
+                                        <p class="section-subtitle">Add companies associated with this report.</p>
                                     </div>
                                 </div>
 
-                                <div id="editCompaniesContainer" class="companies-container">
-                                    <!-- Generated by JS -->
+                                <div class="builder-companies-grid">
+                                    <div id="editCompaniesContainer" class="companies-container"></div>
+                                    <button type="button" class="builder-add-tile add-root-segment-button"
+                                        onclick="addEditCompany()" title="Add Company">
+                                        <i class="fa-solid fa-plus"></i>
+                                        <span>Add Company</span>
+                                    </button>
                                 </div>
-
-                                <button type="button" class="add-root-segment-button" onclick="addEditCompany()">
-                                    <i class="fa-solid fa-plus"></i> Add Company
-                                </button>
                             </div>
 
                             <!-- SUBMIT SECTION -->

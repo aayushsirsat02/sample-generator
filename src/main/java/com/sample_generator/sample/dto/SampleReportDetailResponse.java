@@ -16,12 +16,26 @@ public class SampleReportDetailResponse {
     private Integer baseYear;
     private Integer forecastYear;
 
+    public Double getCagr() {
+        return cagr;
+    }
+
+    public void setCagr(Double cagr) {
+        this.cagr = cagr;
+    }
+
+    private Double cagr;
+
     /*
      * NEW FIELDS
      */
     private Double marketValueBaseYear;
     private Double marketValueForecastYear;
     private String category;
+
+    private String measurementType;
+    private String currency;
+    private String measurementUnit;
 
     /*
      * READ-ONLY INFO (for the right-side info panel in the edit view)
@@ -144,6 +158,30 @@ public class SampleReportDetailResponse {
         this.category = category;
     }
 
+    public String getMeasurementType() {
+        return measurementType;
+    }
+
+    public void setMeasurementType(String measurementType) {
+        this.measurementType = measurementType;
+    }
+
+    public String getCurrency() {
+        return currency;
+    }
+
+    public void setCurrency(String currency) {
+        this.currency = currency;
+    }
+
+    public String getMeasurementUnit() {
+        return measurementUnit;
+    }
+
+    public void setMeasurementUnit(String measurementUnit) {
+        this.measurementUnit = measurementUnit;
+    }
+
     public String getCreatedAt() {
         return createdAt;
     }
@@ -175,4 +213,6 @@ public class SampleReportDetailResponse {
     public void setCompanies(List<CompanyRequest> companies) {
         this.companies = companies;
     }
+
+
 }

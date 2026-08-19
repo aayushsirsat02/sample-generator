@@ -18,16 +18,13 @@ public class SampleReportController {
 
         private final SampleReportService sampleReportService;
 
-        public SampleReportController(
-                        SampleReportService sampleReportService) {
+        public SampleReportController(SampleReportService sampleReportService) {
 
                 this.sampleReportService = sampleReportService;
         }
 
         /*
-         * ================================================
-         * CREATE SAMPLE REPORT
-         * POST /api/reports
+         * ================================================ CREATE SAMPLE REPORT POST /api/reports
          * ================================================
          */
 
@@ -42,18 +39,14 @@ public class SampleReportController {
 
                 String username = authentication.getName();
 
-                Long reportId = sampleReportService.createSampleReport(
-                                request,
-                                username);
+                Long reportId = sampleReportService.createSampleReport(request, username);
 
                 return ResponseEntity.ok(reportId);
         }
 
         /*
-         * ================================================
-         * UPDATE SAMPLE REPORT
-         * PUT /api/reports/{reportId}
-         * ================================================
+         * ================================================ UPDATE SAMPLE REPORT PUT
+         * /api/reports/{reportId} ================================================
          */
 
         @PutMapping("/{reportId}")
@@ -69,19 +62,15 @@ public class SampleReportController {
 
                 String username = authentication.getName();
 
-                Long updatedId = sampleReportService.updateSampleReport(
-                                reportId,
-                                request,
+                Long updatedId = sampleReportService.updateSampleReport(reportId, request,
                                 username);
 
                 return ResponseEntity.ok(updatedId);
         }
 
         /*
-         * ================================================
-         * GET MY REPORTS
-         * GET /api/reports/my-reports
-         * ================================================
+         * ================================================ GET MY REPORTS GET
+         * /api/reports/my-reports ================================================
          */
 
         @GetMapping("/my-reports")
@@ -96,10 +85,8 @@ public class SampleReportController {
         }
 
         /*
-         * ================================================
-         * GET ALL REPORTS (ADMIN)
-         * GET /api/reports/all
-         * ================================================
+         * ================================================ GET ALL REPORTS (ADMIN) GET
+         * /api/reports/all ================================================
          */
 
         @GetMapping("/all")
@@ -112,10 +99,8 @@ public class SampleReportController {
         }
 
         /*
-         * ================================================
-         * GET REPORT BY ID
-         * GET /api/reports/{reportId}
-         * ================================================
+         * ================================================ GET REPORT BY ID GET
+         * /api/reports/{reportId} ================================================
          */
 
         @GetMapping("/{reportId}")
@@ -129,18 +114,33 @@ public class SampleReportController {
 
                 String username = authentication.getName();
 
-                SampleReportDetailResponse report = sampleReportService.getReportById(
-                                reportId,
-                                username);
+                SampleReportDetailResponse report =
+                                sampleReportService.getReportById(reportId, username);
 
                 return ResponseEntity.ok(report);
         }
 
+        @DeleteMapping("/{reportId}")
+        public ResponseEntity<Map<String, String>> deleteSampleReport(
+
+                        @PathVariable Long reportId,
+
+                        Authentication authentication
+
+        ) {
+
+                String username = authentication.getName();
+                boolean isAdmin = authentication.getAuthorities().stream()
+                                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+
+                sampleReportService.deleteSampleReport(reportId, username, isAdmin);
+
+                return ResponseEntity.ok(Map.of("message", "Report deleted successfully."));
+        }
+
         /*
-         * ================================================
-         * DOWNLOAD WORD REPORT
-         * GET /api/reports/{reportId}/word
-         * ================================================
+         * ================================================ DOWNLOAD WORD REPORT GET
+         * /api/reports/{reportId}/word ================================================
          */
 
         @GetMapping("/{reportId}/word")
@@ -154,22 +154,15 @@ public class SampleReportController {
 
                 String username = authentication.getName();
 
-                byte[] wordFile = sampleReportService
-                                .generateWordReport(
-                                                reportId,
-                                                username);
+                byte[] wordFile = sampleReportService.generateWordReport(reportId, username);
 
-                return ResponseEntity
-                                .ok()
+                return ResponseEntity.ok()
 
-                                .header(
-                                                "Content-Disposition",
-                                                "attachment; filename=sample-report-"
-                                                                + reportId
+                                .header("Content-Disposition",
+                                                "attachment; filename=sample-report-" + reportId
                                                                 + ".docx")
 
-                                .header(
-                                                "Content-Type",
+                                .header("Content-Type",
                                                 "application/vnd.openxmlformats-officedocument.wordprocessingml.document")
 
                                 .body(wordFile);
@@ -177,10 +170,8 @@ public class SampleReportController {
         }
 
         /*
-         * ================================================
-         * DOWNLOAD PPT REPORT (STUB)
-         * GET /api/reports/{reportId}/ppt
-         * ================================================
+         * ================================================ DOWNLOAD PPT REPORT (STUB) GET
+         * /api/reports/{reportId}/ppt ================================================
          */
 
         @GetMapping("/{reportId}/ppt")
@@ -192,27 +183,36 @@ public class SampleReportController {
 
         ) {
 
-                return ResponseEntity
-                                .status(HttpStatus.NOT_IMPLEMENTED)
-                                .body(Map.of(
-                                                "message",
-                                                "PPT generation coming soon. Report ID: " + reportId));
+                return ResponseEntity.status(HttpStatus.NOT_IMPLEMENTED).body(Map.of("message",
+                                "PPT generation coming soon. Report ID: " + reportId));
 
         }
 
         @GetMapping("/{reportId}/export/json")
-        public ResponseEntity<Map<String, Object>> exportReportJson(
-                        @PathVariable Long reportId,
+        public ResponseEntity<Map<String, Object>> exportReportJson(@PathVariable Long reportId,
                         Authentication authentication) {
-                return ResponseEntity.ok(
-                                sampleReportService.getReportConfigExport(reportId, authentication.getName()));
+                return ResponseEntity.ok(sampleReportService.getReportConfigExport(reportId,
+                                authentication.getName()));
         }
 
+//        @PutMapping("/{reportId}/export/json")
+//        public ResponseEntity<Map<String, Object>> saveReportConfig(@PathVariable Long reportId,
+//                        @RequestBody Map<String, Object> configPayload,
+//                        Authentication authentication) {
+//                return ResponseEntity.ok(sampleReportService.saveReportConfig(reportId, configPayload,
+//                                authentication.getName()));
+//        }
+//
+//        @PostMapping("/{reportId}/export/json/reset")
+//        public ResponseEntity<Map<String, Object>> resetReportConfig(@PathVariable Long reportId,
+//                        Authentication authentication) {
+//                return ResponseEntity.ok(sampleReportService.resetReportConfig(reportId,
+//                                authentication.getName()));
+//        }
+
         /*
-         * ================================================
-         * SEARCH REPORTS
-         * GET /api/reports/search?query=...
-         * ================================================
+         * ================================================ SEARCH REPORTS GET
+         * /api/reports/search?query=... ================================================
          */
 
         @GetMapping("/search")
@@ -229,10 +229,8 @@ public class SampleReportController {
                 boolean isAdmin = authentication.getAuthorities().stream()
                                 .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
 
-                List<SampleReportListResponse> reports = sampleReportService.searchMyReports(
-                                query,
-                                username,
-                                isAdmin);
+                List<SampleReportListResponse> reports =
+                                sampleReportService.searchMyReports(query, username, isAdmin);
 
                 return ResponseEntity.ok(reports);
         }

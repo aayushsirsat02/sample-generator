@@ -3,6 +3,7 @@ package com.sample_generator.sample.service;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sample_generator.sample.Entity.SampleReport;
+import com.sample_generator.sample.pdf.PdfGenerationService;
 import com.sample_generator.sample.repository.SampleReportRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,10 +17,13 @@ public class AssetReferenceService {
 
     private final SampleReportRepository reportRepository;
     private final ObjectMapper objectMapper;
+    private final PdfGenerationService pdfGenerationService;
 
-    public AssetReferenceService(SampleReportRepository reportRepository, ObjectMapper objectMapper) {
+    public AssetReferenceService(SampleReportRepository reportRepository, ObjectMapper objectMapper,
+            PdfGenerationService pdfGenerationService) {
         this.reportRepository = reportRepository;
         this.objectMapper = objectMapper;
+        this.pdfGenerationService = pdfGenerationService;
     }
 
     public int countUsage(String assetPath) {
@@ -68,6 +72,7 @@ public class AssetReferenceService {
             }
             if (changed) {
                 reportRepository.save(report);
+                pdfGenerationService.requestGeneration(report.getId());
             }
         }
     }

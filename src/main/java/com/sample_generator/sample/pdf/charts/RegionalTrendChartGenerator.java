@@ -320,15 +320,47 @@ public class RegionalTrendChartGenerator {
 
         g.dispose();
 
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-
-        ImageIO.write(image, "png", out);
-
-        return out.toByteArray();
+        return writePngFast(image);
 
     }
 
 
+
+    /**
+     * Lossless PNG with the fastest Deflate setting so visual pixels stay identical
+     * while avoiding ImageIO's default max-compression encode.
+     */
+    private static byte[] writePngFast(java.awt.image.BufferedImage image) throws IOException {
+        java.util.Iterator<javax.imageio.ImageWriter> writers = ImageIO.getImageWritersByFormatName("png");
+        if (!writers.hasNext()) {
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            ImageIO.write(image, "png", out);
+            return out.toByteArray();
+        }
+        javax.imageio.ImageWriter writer = writers.next();
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        try (javax.imageio.stream.ImageOutputStream ios = ImageIO.createImageOutputStream(out)) {
+            writer.setOutput(ios);
+            javax.imageio.ImageWriteParam param = writer.getDefaultWriteParam();
+            try {
+                if (param.canWriteCompressed()) {
+                    param.setCompressionMode(javax.imageio.ImageWriteParam.MODE_EXPLICIT);
+                    String[] types = param.getCompressionTypes();
+                    if (types != null && types.length > 0) {
+                        param.setCompressionType(types[0]);
+                    }
+                    param.setCompressionQuality(1.0f);
+                }
+                writer.write(null, new javax.imageio.IIOImage(image, null, null), param);
+            } catch (IllegalArgumentException | UnsupportedOperationException ex) {
+                writer.write(null, new javax.imageio.IIOImage(image, null, null), null);
+            }
+            ios.flush();
+        } finally {
+            writer.dispose();
+        }
+        return out.toByteArray();
+    }
 
     private static String formatAxisValue(double value) {
 

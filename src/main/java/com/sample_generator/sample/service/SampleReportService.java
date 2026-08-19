@@ -14,17 +14,13 @@ public interface SampleReportService {
          * CREATE SAMPLE REPORT
          */
 
-        Long createSampleReport(
-                        CreateSampleReportRequest request,
-                        String username);
+        Long createSampleReport(CreateSampleReportRequest request, String username);
 
         /*
-         * GET REPORTS CREATED BY
-         * LOGGED-IN USER
+         * GET REPORTS CREATED BY LOGGED-IN USER
          */
 
-        List<SampleReportListResponse> getMyReports(
-                        String username);
+        List<SampleReportListResponse> getMyReports(String username);
 
         /*
          * GET ALL REPORTS (ADMIN)
@@ -32,30 +28,21 @@ public interface SampleReportService {
 
         List<SampleReportListResponse> getAllReports();
 
-        SampleReportDetailResponse getReportById(
-                        Long reportId,
-                        String username);
+        SampleReportDetailResponse getReportById(Long reportId, String username);
 
         /*
          * UPDATE SAMPLE REPORT
          */
 
-        Long updateSampleReport(
-                        Long reportId,
-                        CreateSampleReportRequest request,
-                        String username);
+        Long updateSampleReport(Long reportId, CreateSampleReportRequest request, String username);
 
-        byte[] generateWordReport(
-                        Long reportId,
-                        String username) throws Exception;
+        void deleteSampleReport(Long reportId, String username, boolean isAdmin);
 
-        Map<String, Object> getReportConfigExport(
-                        Long reportId,
-                        String username);
+        byte[] generateWordReport(Long reportId, String username) throws Exception;
 
-        List<SampleReportListResponse> searchMyReports(
-                        String query,
-                        String username,
+        Map<String, Object> getReportConfigExport(Long reportId, String username);
+
+        List<SampleReportListResponse> searchMyReports(String query, String username,
                         boolean isAdmin);
 
 }

@@ -7,6 +7,7 @@ import com.sample_generator.sample.repository.MarketSegmentRepository;
 import com.sample_generator.sample.repository.SampleReportRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -22,6 +23,7 @@ public class PdfService {
     private final SampleReportRepository sampleReportRepository;
     private final MarketSegmentRepository marketSegmentRepository;
 
+    @Transactional(readOnly = true)
     public byte[] generatePdf(Long reportId) throws IOException {
 
         SampleReport report = sampleReportRepository.findById(reportId)
