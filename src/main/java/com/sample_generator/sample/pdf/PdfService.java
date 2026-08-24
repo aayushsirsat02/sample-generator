@@ -6,6 +6,8 @@ import com.sample_generator.sample.Entity.SampleReport;
 import com.sample_generator.sample.repository.MarketSegmentRepository;
 import com.sample_generator.sample.repository.SampleReportRepository;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,6 +20,8 @@ import java.util.Map;
 @Service
 @RequiredArgsConstructor
 public class PdfService {
+
+    private static final Logger log = LoggerFactory.getLogger(PdfService.class);
 
     private final PdfRenderer pdfRenderer;
     private final SampleReportRepository sampleReportRepository;
@@ -42,7 +46,10 @@ public class PdfService {
 
 
 
-        return pdfRenderer.generatePdf(report, roots);
+        long start = System.currentTimeMillis();
+        byte[] pdf = pdfRenderer.generatePdf(report, roots);
+        log.info("PDF generatePdf() time for reportId={}: {} ms", reportId, System.currentTimeMillis() - start);
+        return pdf;
     }
 
 

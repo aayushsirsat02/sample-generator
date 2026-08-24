@@ -7,6 +7,7 @@ import com.sample_generator.sample.pdf.renderers.TocSectionRecorder;
 import com.sample_generator.sample.pdf.outline.ReportChapterLayout;
 import com.sample_generator.sample.pdf.outline.RegionalOutlineBuilder;
 import com.sample_generator.sample.pdf.outline.TocOutlineEntry;
+import com.sample_generator.sample.pdf.regional.RegionalGeoCatalog;
 import com.sample_generator.sample.pdf.table.BodyTableStyling;
 import com.sample_generator.sample.pdf.layout.BodyFigureLayout;
 import com.sample_generator.sample.pdf.values.MarketValueSeriesProvider;
@@ -339,17 +340,33 @@ public class PdfRenderer {
         float pageWidth = pageSize.getWidth();
         float pageHeight = pageSize.getHeight();
 
-        if (!tocIndexingPass) {
-            ImageData imageData = ClasspathImageCache.fromBytes(
-                    "cover:" + theme().coverImagePath(),
-                    loadCoverBytes(theme().coverImagePath()));
-            Image coverImage = PdfDocumentImageCache.image("cover:" + theme().coverImagePath(), imageData);
-
-            // Full-bleed cover
-            coverImage.scaleAbsolute(pageWidth, pageHeight);
-            coverImage.setFixedPosition(1, 0f, 0f);
-            document.add(coverImage);
+        if (tocIndexingPass) {
+            // Reserve page 1 so AreaBreak after the cover matches the final pass.
+            PdfDocument pdfDocument = document.getPdfDocument();
+            if (pdfDocument.getNumberOfPages() == 0) {
+                pdfDocument.addNewPage(pageSize);
+            }
+            return;
         }
+
+        ImageData imageData = ClasspathImageCache.fromBytes(
+                "cover:" + theme().coverImagePath(),
+                loadCoverBytes(theme().coverImagePath()));
+
+        // Paint the cover on the page canvas so it never occupies document flow.
+        PdfDocument pdfDocument = document.getPdfDocument();
+        if (pdfDocument.getNumberOfPages() == 0) {
+            pdfDocument.addNewPage(pageSize);
+        }
+        PdfPage coverPage = pdfDocument.getFirstPage();
+        PdfCanvas coverCanvas = new PdfCanvas(
+                coverPage.newContentStreamBefore(),
+                coverPage.getResources(),
+                pdfDocument);
+        coverCanvas.addImageFittedIntoRectangle(
+                imageData,
+                new Rectangle(0f, 0f, pageWidth, pageHeight),
+                false);
 
         float left = 60f;
         float textWidth = pageWidth - (left * 2);
@@ -363,13 +380,13 @@ public class PdfRenderer {
         }
 
         // 1. DYNAMIC FONT SIZE CALCULATION (Auto-adjusts based on text length)
-        float titleFontSize = 32f; // Default for normal titles
+        float titleFontSize = 26f; // Default for normal titles
         if (keyName.length() > 90) {
             titleFontSize = 20f;
         } else if (keyName.length() > 65) {
-            titleFontSize = 24f;
+            titleFontSize = 22f;
         } else if (keyName.length() > 40) {
-            titleFontSize = 28f;
+            titleFontSize = 24f;
         }
 
         // 2. CONTAINER DIV (Positioned at bottom left of cover)
@@ -398,6 +415,18 @@ public class PdfRenderer {
                 .setMarginBottom(8f);
         container.add(subtitle);
 
+
+        // Category Line (Above Title)
+        String category = report.getCategory();
+        if (category != null && !category.isBlank()) {
+            Paragraph categoryLine = new Paragraph("Category: "+category.trim().toUpperCase())
+                    .setFont(themeRenderer.semiBold())
+                    .setFontSize(12)
+                    .setFontColor(coverMuted)
+                    .setMargin(0);
+            container.add(categoryLine);
+        }
+
         // Date Line
         if (report.getCreatedAt() != null) {
             String published = report.getCreatedAt()
@@ -410,18 +439,6 @@ public class PdfRenderer {
             container.add(dateLine);
         }
 
-        // Category Line (Above Title)
-        String category = report.getCategory();
-        if (category != null && !category.isBlank()) {
-            Paragraph categoryLine = new Paragraph("Category: "+category.trim().toUpperCase())
-                    .setFont(themeRenderer.semiBold())
-                    .setFontSize(12)
-                    .setFontColor(coverMuted)
-                    .setMargin(0)
-                    .setMarginLeft(30f)
-                    .setMarginBottom(4f);
-            container.add(categoryLine);
-        }
 
         // Render cover background first, then the text container on top
         document.add(container);
@@ -1447,7 +1464,7 @@ public class PdfRenderer {
         recordTocDestinationPage(document, "toc." + chapter + ".7." + attractSection);
         document.add(BodyFigureLayout.figureCaptionUnnumbered(
                 themeRenderer, "FIGURE  ", "Market Attractiveness Analysis – By Region"));
-        BodyFigureLayout.addClasspathFigure(document, "assets/images/map.jpg", 90f);
+        BodyFigureLayout.addClasspathFigureWithMaxHeight(document, "assets/images/img_8.png", 300f);
         sourceParagraph(document, report, reportPlaceholderSource());
         document.add(new Paragraph("Note: Charts & Figures only for Illustration purpose")
                 .setFont(themeRenderer.regular())
@@ -2136,7 +2153,8 @@ public class PdfRenderer {
                     }
                     captions.add("FIGURE " + figure++ + " " + region.getSegmentName().toUpperCase(Locale.ROOT)
                             + " " + market + ", " + yearRange + " " + MeasurementLabels.getMeasurementLabel(report));
-                    List<MarketSegment> countries = region.getChildren();
+                    List<MarketSegment> countries = RegionalGeoCatalog.countryNodesForRegion(
+                            region.getSegmentName(), report, region.getChildren());
                     if (countries != null) {
                         for (MarketSegment country : countries) {
                             if (country == null || country.getSegmentName() == null) {

@@ -1074,13 +1074,83 @@ select.form-control {
 .region-country-chip {
     display: inline-flex;
     align-items: center;
-    padding: 4px 10px;
+    gap: 6px;
+    padding: 4px 8px 4px 10px;
     font-size: 0.78rem;
     font-weight: 600;
     color: var(--brand-primary);
     background-color: #f8fafc;
     border: 1px solid var(--border-color);
     border-radius: 6px;
+}
+
+.region-country-chip button {
+    border: none;
+    background: transparent;
+    color: #64748b;
+    cursor: pointer;
+    font-size: 0.72rem;
+    padding: 0;
+    line-height: 1;
+}
+
+.region-country-chip button:hover {
+    color: var(--brand-danger);
+}
+
+.countries-editor-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 10px;
+}
+
+.country-region-card {
+    background-color: #ffffff;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 10px 12px;
+    box-shadow: 0 1px 2px rgba(7, 27, 107, 0.04);
+    min-width: 0;
+}
+
+.country-region-card h3 {
+    margin: 0 0 8px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--brand-primary);
+}
+
+.country-add-row {
+    display: flex;
+    gap: 6px;
+    margin-top: 8px;
+    align-items: center;
+}
+
+.country-add-row input {
+    flex: 1;
+    min-width: 0;
+    height: 30px;
+    font-size: 0.78rem;
+    padding: 4px 8px;
+}
+
+.country-add-row .btn-compact {
+    height: 30px;
+    padding: 0 8px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+    background: #fff;
+    color: var(--brand-primary);
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.country-add-row .btn-compact:hover {
+    border-color: var(--brand-secondary);
+    color: var(--brand-secondary);
 }
 
 .company-row {

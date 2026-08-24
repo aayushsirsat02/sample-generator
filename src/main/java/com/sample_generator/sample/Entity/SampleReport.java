@@ -1,6 +1,5 @@
 package com.sample_generator.sample.Entity;
 
-import com.sample_generator.sample.pdf.PdfStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
 
@@ -113,13 +112,6 @@ public class SampleReport {
 
     @Column(name = "is_edited")
     private Boolean isEdited = false;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "pdf_status", length = 20)
-    private PdfStatus pdfStatus;
-
-    @Column(name = "pdf_error", length = 2000)
-    private String pdfError;
 
     @PrePersist
     public void prePersist() {
@@ -321,19 +313,4 @@ public class SampleReport {
         this.cagr = cagr;
     }
 
-    public PdfStatus getPdfStatus() {
-        return pdfStatus;
-    }
-
-    public void setPdfStatus(PdfStatus pdfStatus) {
-        this.pdfStatus = pdfStatus;
-    }
-
-    public String getPdfError() {
-        return pdfError;
-    }
-
-    public void setPdfError(String pdfError) {
-        this.pdfError = pdfError;
-    }
 }

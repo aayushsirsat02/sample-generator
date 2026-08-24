@@ -733,22 +733,36 @@
                             <div class="form-section-header">
                                 <div>
                                     <h2><i class="fa-solid fa-globe"></i> Regional</h2>
-                                    <p class="section-subtitle">Select one region. Countries update from that region.</p>
+                                    <p class="section-subtitle">Selected region is the report scope. Countries below apply to that region only.</p>
                                 </div>
                             </div>
 
                             <div class="regional-panel">
-                                <div class="form-group" style="margin-bottom: 10px;">
+                                <div class="form-group" style="margin-bottom: 0;">
                                     <label for="regionSelect">Region</label>
                                     <select id="regionSelect" class="form-control">
                                         <option value="">Select Region</option>
                                     </select>
                                 </div>
-                                <div class="form-group" style="margin-bottom: 0;">
-                                    <label>Countries</label>
-                                    <div id="regionCountries" class="region-country-chips"></div>
+                            </div>
+
+                        </div>
+
+
+                        <!-- =================================================
+                         02c. COUNTRIES
+                    ================================================== -->
+
+                        <div class="content-card report-form-card" id="countriesSection" hidden>
+
+                            <div class="form-section-header">
+                                <div>
+                                    <h2><i class="fa-solid fa-flag"></i> Countries</h2>
+                                    <p class="section-subtitle">Remove, add, or reset countries. Order is kept in the PDF.</p>
                                 </div>
                             </div>
+
+                            <div id="countriesEditor" class="countries-editor-grid"></div>
 
                         </div>
 
@@ -1156,22 +1170,29 @@
                                 <div class="form-section-header">
                                     <div>
                                         <h2><i class="fa-solid fa-globe"></i> Regional</h2>
-                                        <p class="section-subtitle">Select one region. Countries update from that region.</p>
+                                        <p class="section-subtitle">Selected region is the report scope. Countries below apply to that region only.</p>
                                     </div>
                                 </div>
 
                                 <div class="regional-panel">
-                                    <div class="form-group" style="margin-bottom: 10px;">
+                                    <div class="form-group" style="margin-bottom: 0;">
                                         <label for="editRegionSelect">Region</label>
                                         <select id="editRegionSelect" class="form-control">
                                             <option value="">Select Region</option>
                                         </select>
                                     </div>
-                                    <div class="form-group" style="margin-bottom: 0;">
-                                        <label>Countries</label>
-                                        <div id="editRegionCountries" class="region-country-chips"></div>
+                                </div>
+                            </div>
+
+                            <!-- 02c. COUNTRIES -->
+                            <div class="content-card report-form-card" id="editCountriesSection" hidden>
+                                <div class="form-section-header">
+                                    <div>
+                                        <h2><i class="fa-solid fa-flag"></i> Countries</h2>
+                                        <p class="section-subtitle">Remove, add, or reset countries. Order is kept in the PDF.</p>
                                     </div>
                                 </div>
+                                <div id="editCountriesEditor" class="countries-editor-grid"></div>
                             </div>
 
                             <!-- 03. COMPANIES -->

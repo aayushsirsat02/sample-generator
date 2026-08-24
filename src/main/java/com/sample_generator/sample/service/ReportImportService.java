@@ -12,7 +12,6 @@ import com.sample_generator.sample.Entity.User;
 import com.sample_generator.sample.repository.UserRepository;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import com.sample_generator.sample.pdf.PdfGenerationService;
 import com.sample_generator.sample.Entity.SampleReportSource;
 import java.net.URI;
 import java.time.LocalDateTime;
@@ -22,16 +21,13 @@ public class ReportImportService {
 
     private final SampleReportRepository sampleReportRepository;
     private final UserRepository userRepository;
-    private final PdfGenerationService pdfGenerationService;
 
     public ReportImportService(
             SampleReportRepository sampleReportRepository,
-            UserRepository userRepository,
-            PdfGenerationService pdfGenerationService) {
+            UserRepository userRepository) {
 
         this.sampleReportRepository = sampleReportRepository;
         this.userRepository = userRepository;
-        this.pdfGenerationService = pdfGenerationService;
     }
 
     @Transactional
@@ -247,9 +243,7 @@ public class ReportImportService {
          * │     └── Child Segments
          * └── Companies
          */
-        SampleReport saved = sampleReportRepository.save(sampleReport);
-        pdfGenerationService.requestGeneration(saved.getId());
-        return saved;
+        return sampleReportRepository.save(sampleReport);
     }
 
     private String createDefaultReportConfig(

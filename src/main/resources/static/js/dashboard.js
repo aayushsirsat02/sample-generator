@@ -19,6 +19,24 @@ const REGIONAL_COUNTRIES = {
     "MEA": ["GCC Countries", "South Africa", "Rest of MEA"]
 };
 
+const REGION_NAME_ALIASES = {
+    "APAC": "Asia Pacific",
+    "Latin America": "South America",
+    "Middle East & Africa": "MEA",
+    "The Middle-East and Africa": "MEA"
+};
+
+function cloneDefaultCountries() {
+    const out = {};
+    Object.keys(REGIONAL_COUNTRIES).forEach(region => {
+        out[region] = REGIONAL_COUNTRIES[region].slice();
+    });
+    return out;
+}
+
+let createCountriesByRegion = cloneDefaultCountries();
+let editCountriesByRegion = cloneDefaultCountries();
+
 // Will hold user info from /api/user/me
 let currentUser = {
     username: "",
@@ -342,7 +360,8 @@ document.getElementById("createReportForm")
                 marketValueForecastYear: document.getElementById("marketValueForecastYear").value ? parseFloat(document.getElementById("marketValueForecastYear").value) : null,
                 category: document.getElementById("category").value,
                 segments: getSegmentsData(),
-                companies: getCompaniesData()
+                companies: getCompaniesData(),
+                countriesByRegion: getCountriesPayload(scope, "regionSelect", createCountriesByRegion)
             };
 
             const response = await fetch('/api/reports', {
@@ -382,7 +401,8 @@ function resetReportForm() {
     document.getElementById("createReportForm").reset();
     document.getElementById("segmentsContainer").innerHTML = "";
     document.getElementById("companiesContainer").innerHTML = "";
-    syncRegionalScopeUi("scope", "scopeNameGroup", "regionalSection", "regionSelect", "regionCountries");
+    createCountriesByRegion = cloneDefaultCountries();
+    syncGeoScopeUi("create");
 }
 
 // Data extraction helpers for Create
@@ -646,26 +666,26 @@ function initRegionalScopeUi() {
 
     if (createScope) {
         createScope.addEventListener("change", function () {
-            syncRegionalScopeUi("scope", "scopeNameGroup", "regionalSection", "regionSelect", "regionCountries");
+            syncGeoScopeUi("create");
         });
     }
     if (editScope) {
         editScope.addEventListener("change", function () {
-            syncRegionalScopeUi("editScope", "editScopeNameGroup", "editRegionalSection", "editRegionSelect", "editRegionCountries");
+            syncGeoScopeUi("edit");
         });
     }
     if (regionSelect) {
         regionSelect.addEventListener("change", function () {
-            renderRegionCountries("regionCountries", regionSelect.value);
+            syncGeoScopeUi("create");
         });
     }
     if (editRegionSelect) {
         editRegionSelect.addEventListener("change", function () {
-            renderRegionCountries("editRegionCountries", editRegionSelect.value);
+            syncGeoScopeUi("edit");
         });
     }
 
-    syncRegionalScopeUi("scope", "scopeNameGroup", "regionalSection", "regionSelect", "regionCountries");
+    syncGeoScopeUi("create");
 }
 
 function fillRegionSelect(selectId) {
@@ -684,12 +704,38 @@ function fillRegionSelect(selectId) {
     }
 }
 
-function syncRegionalScopeUi(scopeId, scopeNameGroupId, regionalSectionId, regionSelectId, countriesId) {
-    const scopeEl = document.getElementById(scopeId);
-    const scopeNameGroup = document.getElementById(scopeNameGroupId);
-    const regionalSection = document.getElementById(regionalSectionId);
-    const regionSelect = document.getElementById(regionSelectId);
-    const isRegional = scopeEl && scopeEl.value === "Regional";
+function canonicalRegionName(name) {
+    if (!name) return "";
+    if (REGIONAL_COUNTRIES[name]) return name;
+    const aliased = REGION_NAME_ALIASES[name];
+    if (aliased && REGIONAL_COUNTRIES[aliased]) return aliased;
+    const lower = String(name).toLowerCase();
+    return Object.keys(REGIONAL_COUNTRIES).find(key => key.toLowerCase() === lower) || "";
+}
+
+function applySavedCountries(saved) {
+    const state = cloneDefaultCountries();
+    if (!saved || typeof saved !== "object") {
+        return state;
+    }
+    Object.keys(saved).forEach(region => {
+        const canonical = canonicalRegionName(region) || region;
+        state[canonical] = Array.isArray(saved[region]) ? saved[region].slice() : [];
+    });
+    return state;
+}
+
+function syncGeoScopeUi(mode) {
+    const isCreate = mode === "create";
+    const scopeEl = document.getElementById(isCreate ? "scope" : "editScope");
+    const scopeNameGroup = document.getElementById(isCreate ? "scopeNameGroup" : "editScopeNameGroup");
+    const regionalSection = document.getElementById(isCreate ? "regionalSection" : "editRegionalSection");
+    const countriesSection = document.getElementById(isCreate ? "countriesSection" : "editCountriesSection");
+    const regionSelect = document.getElementById(isCreate ? "regionSelect" : "editRegionSelect");
+    const editorId = isCreate ? "countriesEditor" : "editCountriesEditor";
+    const scope = scopeEl ? scopeEl.value : "";
+    const isRegional = scope === "Regional";
+    const showCountries = scope === "Global" || isRegional;
 
     if (regionalSection) {
         regionalSection.hidden = !isRegional;
@@ -697,22 +743,139 @@ function syncRegionalScopeUi(scopeId, scopeNameGroupId, regionalSectionId, regio
     if (scopeNameGroup) {
         scopeNameGroup.style.display = isRegional ? "none" : "";
     }
-    if (isRegional && regionSelect) {
-        renderRegionCountries(countriesId, regionSelect.value);
+    if (countriesSection) {
+        countriesSection.hidden = !showCountries;
     }
+
+    const state = isCreate ? createCountriesByRegion : editCountriesByRegion;
+    renderCountriesEditor(editorId, state, {
+        mode: mode,
+        scope: scope,
+        regionName: regionSelect ? regionSelect.value : ""
+    });
 }
 
-function renderRegionCountries(containerId, regionName) {
+function renderCountriesEditor(containerId, state, options) {
     const container = document.getElementById(containerId);
     if (!container) return;
     container.innerHTML = "";
-    const countries = REGIONAL_COUNTRIES[regionName] || [];
-    countries.forEach(country => {
+    const scope = options.scope;
+    if (scope !== "Global" && scope !== "Regional") {
+        return;
+    }
+
+    let regions = Object.keys(REGIONAL_COUNTRIES);
+    if (scope === "Regional") {
+        if (!options.regionName) {
+            container.innerHTML = '<p class="section-subtitle" style="margin:0;">Select a region to edit its countries.</p>';
+            return;
+        }
+        regions = [options.regionName];
+    }
+
+    regions.forEach(region => {
+        if (!state[region]) {
+            state[region] = (REGIONAL_COUNTRIES[region] || []).slice();
+        }
+        container.appendChild(buildCountryRegionCard(region, state, options.mode));
+    });
+}
+
+function buildCountryRegionCard(region, state, mode) {
+    const card = document.createElement("div");
+    card.className = "country-region-card";
+
+    const title = document.createElement("h3");
+    title.textContent = region;
+    card.appendChild(title);
+
+    const chips = document.createElement("div");
+    chips.className = "region-country-chips";
+    (state[region] || []).forEach((country, index) => {
         const chip = document.createElement("span");
         chip.className = "region-country-chip";
-        chip.textContent = country;
-        container.appendChild(chip);
+        chip.appendChild(document.createTextNode(country + " "));
+        const removeBtn = document.createElement("button");
+        removeBtn.type = "button";
+        removeBtn.setAttribute("aria-label", "Remove " + country);
+        removeBtn.innerHTML = '<i class="fa-solid fa-xmark"></i>';
+        removeBtn.addEventListener("click", function () {
+            state[region].splice(index, 1);
+            syncGeoScopeUi(mode);
+        });
+        chip.appendChild(removeBtn);
+        chips.appendChild(chip);
     });
+    card.appendChild(chips);
+
+    const row = document.createElement("div");
+    row.className = "country-add-row";
+
+    const input = document.createElement("input");
+    input.type = "text";
+    input.className = "form-control";
+    input.placeholder = "Add country";
+
+    const addCountry = function () {
+        const name = input.value.trim();
+        if (!name) return;
+        if (!state[region]) state[region] = [];
+        const exists = state[region].some(function (item) {
+            return item.toLowerCase() === name.toLowerCase();
+        });
+        if (!exists) {
+            state[region].push(name);
+        }
+        input.value = "";
+        syncGeoScopeUi(mode);
+    };
+
+    const addBtn = document.createElement("button");
+    addBtn.type = "button";
+    addBtn.className = "btn-compact";
+    addBtn.textContent = "Add";
+    addBtn.addEventListener("click", addCountry);
+    input.addEventListener("keydown", function (event) {
+        if (event.key === "Enter") {
+            event.preventDefault();
+            addCountry();
+        }
+    });
+
+    const resetBtn = document.createElement("button");
+    resetBtn.type = "button";
+    resetBtn.className = "btn-compact";
+    resetBtn.textContent = "Reset Region";
+    resetBtn.addEventListener("click", function () {
+        state[region] = (REGIONAL_COUNTRIES[region] || []).slice();
+        syncGeoScopeUi(mode);
+    });
+
+    row.appendChild(input);
+    row.appendChild(addBtn);
+    row.appendChild(resetBtn);
+    card.appendChild(row);
+    return card;
+}
+
+function getCountriesPayload(scope, regionSelectId, state) {
+    if (scope !== "Global" && scope !== "Regional") {
+        return null;
+    }
+    if (scope === "Regional") {
+        const region = document.getElementById(regionSelectId).value;
+        if (!region) {
+            return {};
+        }
+        const payload = {};
+        payload[region] = (state[region] || []).slice();
+        return payload;
+    }
+    const payload = {};
+    Object.keys(REGIONAL_COUNTRIES).forEach(function (region) {
+        payload[region] = (state[region] || []).slice();
+    });
+    return payload;
 }
 
 function resolveScopeName(scopeId, scopeNameId, regionSelectId) {
@@ -732,13 +895,13 @@ function populateEditForm(report) {
     document.getElementById('editKeyName').value = report.keyName || '';
     document.getElementById('editScope').value = report.scope || '';
     document.getElementById('editScopeName').value = report.scopeName || '';
+    editCountriesByRegion = applySavedCountries(report.countriesByRegion);
     const editRegionSelect = document.getElementById('editRegionSelect');
     if (editRegionSelect) {
-        const savedRegion = report.scopeName || '';
+        const savedRegion = canonicalRegionName(report.scopeName || '') || '';
         editRegionSelect.value = REGIONAL_COUNTRIES[savedRegion] ? savedRegion : '';
-        renderRegionCountries('editRegionCountries', editRegionSelect.value);
     }
-    syncRegionalScopeUi('editScope', 'editScopeNameGroup', 'editRegionalSection', 'editRegionSelect', 'editRegionCountries');
+    syncGeoScopeUi('edit');
     document.getElementById('editValueVolume').value = report.measurementType || report.valueVolume || 'Value';
     document.getElementById('editCurrency').value = report.currency || 'USD';
     document.getElementById('editUnit').value = report.measurementUnit || 'Million';
@@ -816,7 +979,8 @@ async function updateSampleReport() {
             marketValueForecastYear: document.getElementById("editMarketValueForecastYear").value ? parseFloat(document.getElementById("editMarketValueForecastYear").value) : null,
             category: document.getElementById("editCategory").value,
             segments: getEditSegmentsData(),
-            companies: getEditCompaniesData()
+            companies: getEditCompaniesData(),
+            countriesByRegion: getCountriesPayload(scope, "editRegionSelect", editCountriesByRegion)
         };
 
         const response = await fetch(`/api/reports/${reportId}`, {
@@ -1254,25 +1418,6 @@ async function searchReport() {
 
 let pdfDownloadInProgress = false;
 
-async function waitForPdfReady(id) {
-    const started = Date.now();
-    while (Date.now() - started < 180000) {
-        const response = await fetch(`/reports/${id}/pdf-status`);
-        if (!response.ok) {
-            throw new Error(`PDF status check failed: ${response.status}`);
-        }
-        const payload = await response.json();
-        if (payload.status === 'READY') {
-            return;
-        }
-        if (payload.status === 'FAILED') {
-            throw new Error(payload.message || 'PDF generation failed');
-        }
-        await new Promise((resolve) => setTimeout(resolve, 1500));
-    }
-    throw new Error('PDF is still being prepared. Please try again shortly.');
-}
-
 async function downloadPdfReport(id, triggerBtn) {
     const pdfBtn = triggerBtn || document.getElementById('downloadWordBtn');
     const pdfIcon = pdfBtn ? pdfBtn.querySelector('i') : document.getElementById('pdfDownloadIcon');
@@ -1289,7 +1434,7 @@ async function downloadPdfReport(id, triggerBtn) {
             pdfIcon.className = loading ? 'fa-solid fa-spinner fa-spin' : idleIconClass;
         }
         if (pdfText) {
-            pdfText.textContent = loading ? 'Preparing PDF...' : idleText;
+            pdfText.textContent = loading ? 'Generating PDF...' : idleText;
         }
     };
 
@@ -1329,29 +1474,7 @@ async function downloadPdfReport(id, triggerBtn) {
     }
 
     try {
-        await waitForPdfReady(id);
         const response = await fetch(`/reports/${id}/download`);
-        if (response.status === 202) {
-            await waitForPdfReady(id);
-            const retry = await fetch(`/reports/${id}/download`);
-            if (!retry.ok) {
-                throw new Error(`PDF download failed: ${retry.status}`);
-            }
-            const blob = await retry.blob();
-            const url = window.URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = `report-${id}.pdf`;
-            document.body.appendChild(link);
-            link.click();
-            link.remove();
-            window.URL.revokeObjectURL(url);
-            return;
-        }
-        if (response.status === 503) {
-            const payload = await response.json().catch(() => ({}));
-            throw new Error(payload.message || 'PDF generation failed');
-        }
         if (!response.ok) {
             throw new Error(`PDF download failed: ${response.status}`);
         }

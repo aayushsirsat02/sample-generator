@@ -196,10 +196,9 @@ public class RegionalAnalysisRenderer {
                 .setFontSize(11)
                 .setKeepWithNext(true));
 
-        List<String> countryRows = childNames(region.getChildren());
-        if (countryRows.isEmpty()) {
-            countryRows = RegionalGeoCatalog.countriesForRegion(regionName);
-        }
+        List<MarketSegment> geoNodes = RegionalGeoCatalog.countryNodesForRegion(
+                regionName, report, region.getChildren());
+        List<String> countryRows = childNames(geoNodes);
         addWideValueTable(document, report, "Country", countryRows, market, regionName);
 
         int section = 2;
@@ -240,15 +239,6 @@ public class RegionalAnalysisRenderer {
             section++;
         }
 
-        List<MarketSegment> geoNodes = region.getChildren();
-        if (geoNodes == null || geoNodes.isEmpty()) {
-            geoNodes = new ArrayList<>();
-            for (String country : RegionalGeoCatalog.countriesForRegion(regionName)) {
-                MarketSegment stub = new MarketSegment();
-                stub.setSegmentName(country);
-                geoNodes.add(stub);
-            }
-        }
         renderGeoNodes(document, report, geoNodes, regionPrefix, section, toc, 0, market);
     }
 
@@ -354,7 +344,7 @@ public class RegionalAnalysisRenderer {
             chartYears[i * 2] = baseYear;
             chartYears[i * 2 + 1] = forecastYear;
         }
-        addGeneratedChart(document, chartYears, revenues, growth, report.getBaseYear());
+        addGeneratedChart(document, report, chartYears, revenues, growth, report.getBaseYear());
     }
 
     private void addTrendChart(Document document, SampleReport report, String market, String entityName)
@@ -372,11 +362,12 @@ public class RegionalAnalysisRenderer {
             years[i] = historic + i;
         }
         double[] growth = valueSeriesProvider.yearOverYearGrowthPercent(values);
-        addGeneratedChart(document, years, values, growth, report.getBaseYear());
+        addGeneratedChart(document, report, years, values, growth, report.getBaseYear());
     }
 
     private void addGeneratedChart(
             Document document,
+            SampleReport report,
             int[] years,
             double[] revenues,
             double[] growth,
@@ -386,7 +377,12 @@ public class RegionalAnalysisRenderer {
             return;
         }
         PdfGenTimer.time("charts.generate", () -> {
-            byte[] png = chartGenerator.renderComboChart(years, revenues, growth, forecastStartYear);
+            byte[] png = chartGenerator.renderComboChart(
+                    years,
+                    revenues,
+                    growth,
+                    forecastStartYear
+                   );
             BodyFigureLayout.addChartFigure(document, com.itextpdf.io.image.ImageDataFactory.create(png));
         });
     }

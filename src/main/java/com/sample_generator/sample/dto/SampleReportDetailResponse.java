@@ -1,6 +1,7 @@
 package com.sample_generator.sample.dto;
 
 import java.util.List;
+import java.util.Map;
 
 public class SampleReportDetailResponse {
 
@@ -45,6 +46,7 @@ public class SampleReportDetailResponse {
 
     private List<SegmentRequest> segments;
     private List<CompanyRequest> companies;
+    private Map<String, List<String>> countriesByRegion;
 
     public Long getId() {
         return id;
@@ -214,5 +216,11 @@ public class SampleReportDetailResponse {
         this.companies = companies;
     }
 
+    public Map<String, List<String>> getCountriesByRegion() {
+        return countriesByRegion;
+    }
 
+    public void setCountriesByRegion(Map<String, List<String>> countriesByRegion) {
+        this.countriesByRegion = countriesByRegion;
+    }
 }

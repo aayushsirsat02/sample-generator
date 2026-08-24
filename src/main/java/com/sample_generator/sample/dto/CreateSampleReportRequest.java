@@ -2,6 +2,7 @@ package com.sample_generator.sample.dto;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class CreateSampleReportRequest {
 
@@ -47,6 +48,8 @@ public class CreateSampleReportRequest {
     private List<SegmentRequest> segments = new ArrayList<>();
 
     private List<CompanyRequest> companies = new ArrayList<>();
+
+    private Map<String, List<String>> countriesByRegion;
 
 
     public String getKeyId() {
@@ -206,5 +209,13 @@ public class CreateSampleReportRequest {
 
     public void setCompanies(List<CompanyRequest> companies) {
         this.companies = companies;
+    }
+
+    public Map<String, List<String>> getCountriesByRegion() {
+        return countriesByRegion;
+    }
+
+    public void setCountriesByRegion(Map<String, List<String>> countriesByRegion) {
+        this.countriesByRegion = countriesByRegion;
     }
 }

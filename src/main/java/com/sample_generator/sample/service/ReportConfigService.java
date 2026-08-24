@@ -3,15 +3,15 @@ package com.sample_generator.sample.service;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sample_generator.sample.Entity.SampleReport;
-import com.sample_generator.sample.pdf.PdfGenerationService;
+import com.sample_generator.sample.pdf.regional.RegionalGeoCatalog;
 import com.sample_generator.sample.repository.SampleReportRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -25,13 +25,10 @@ public class ReportConfigService {
 
     private final SampleReportRepository reportRepository;
     private final ObjectMapper objectMapper;
-    private final PdfGenerationService pdfGenerationService;
 
-    public ReportConfigService(SampleReportRepository reportRepository, ObjectMapper objectMapper,
-            @Lazy PdfGenerationService pdfGenerationService) {
+    public ReportConfigService(SampleReportRepository reportRepository, ObjectMapper objectMapper) {
         this.reportRepository = reportRepository;
         this.objectMapper = objectMapper;
-        this.pdfGenerationService = pdfGenerationService;
     }
 
     @Transactional
@@ -71,7 +68,6 @@ public class ReportConfigService {
             report.setReportConfig(configString);
             report.setIsEdited(!configString.equals(report.getOriginalConfig()));
             reportRepository.save(report);
-            pdfGenerationService.requestGeneration(report.getId());
         } catch (Exception e) {
             log.error("Failed to save working report config for report {}", report.getId(), e);
             throw new RuntimeException("Failed to save report configuration", e);
@@ -83,9 +79,7 @@ public class ReportConfigService {
         report = ensureOriginalAndWorkingCopy(report);
         report.setReportConfig(report.getOriginalConfig());
         report.setIsEdited(false);
-        SampleReport saved = reportRepository.save(report);
-        pdfGenerationService.requestGeneration(saved.getId());
-        return saved;
+        return reportRepository.save(report);
     }
 
     public Map<String, Object> resolveWorkingModel(SampleReport report) {
@@ -209,6 +203,38 @@ public class ReportConfigService {
         if (!isBlank(unit)) {
             settings.put("unit", "Billion".equalsIgnoreCase(unit.trim()) ? "Billion" : "Million");
         }
+        model.put("settings", settings);
+        saveWorkingConfig(report, model);
+    }
+
+    @SuppressWarnings("unchecked")
+    public void mergeCountriesByRegion(SampleReport report, Map<String, List<String>> countriesByRegion) {
+        if (countriesByRegion == null || report == null || report.isCountryScope()) {
+            return;
+        }
+        report = ensureOriginalAndWorkingCopy(report);
+        Map<String, Object> model = parseQuiet(report.getReportConfig());
+        if (model.isEmpty()) {
+            model = buildDefaultModel(report);
+        } else {
+            model = new LinkedHashMap<>(model);
+        }
+
+        Map<String, Object> settings;
+        Object existing = model.get("settings");
+        if (existing instanceof Map<?, ?> map) {
+            settings = new LinkedHashMap<>((Map<String, Object>) map);
+        } else {
+            settings = defaultMeasurementSettings();
+        }
+        Map<String, Object> sanitized = new LinkedHashMap<>();
+        for (Map.Entry<String, List<String>> entry : countriesByRegion.entrySet()) {
+            if (entry.getKey() == null || entry.getKey().isBlank()) {
+                continue;
+            }
+            sanitized.put(entry.getKey().trim(), RegionalGeoCatalog.sanitizeCountryList(entry.getValue()));
+        }
+        settings.put(RegionalGeoCatalog.SETTINGS_COUNTRIES_KEY, sanitized);
         model.put("settings", settings);
         saveWorkingConfig(report, model);
     }

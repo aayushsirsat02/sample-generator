@@ -7,7 +7,6 @@ import com.sample_generator.sample.Entity.User;
 import com.sample_generator.sample.dto.*;
 import com.sample_generator.sample.repository.SampleReportRepository;
 import com.sample_generator.sample.repository.UserRepository;
-import com.sample_generator.sample.pdf.PdfGenerationService;
 import com.sample_generator.sample.pdf.MeasurementLabels;
 import com.sample_generator.sample.service.SampleReportService;
 import com.sample_generator.sample.service.ReportConfigService;
@@ -27,20 +26,16 @@ public class SampleReportServiceImpl implements SampleReportService {
 
         private final ReportConfigService reportConfigService;
 
-        private final PdfGenerationService pdfGenerationService;
-
         private static final DateTimeFormatter DISPLAY_FORMATTER =
                         DateTimeFormatter.ofPattern("dd MMM yyyy, HH:mm");
 
         public SampleReportServiceImpl(SampleReportRepository sampleReportRepository,
-                        UserRepository userRepository, ReportConfigService reportConfigService,
-                        PdfGenerationService pdfGenerationService) {
+                        UserRepository userRepository, ReportConfigService reportConfigService) {
 
                 this.sampleReportRepository = sampleReportRepository;
 
                 this.userRepository = userRepository;
                 this.reportConfigService = reportConfigService;
-                this.pdfGenerationService = pdfGenerationService;
         }
 
         /*
@@ -202,8 +197,6 @@ public class SampleReportServiceImpl implements SampleReportService {
                 applyMeasurementSettings(savedReport, request, true);
                 sampleReportRepository.save(savedReport);
 
-                pdfGenerationService.requestGeneration(savedReport.getId());
-
                 return savedReport.getId();
         }
 
@@ -305,7 +298,6 @@ public class SampleReportServiceImpl implements SampleReportService {
 
                 SampleReport savedReport = sampleReportRepository.save(report);
                 applyMeasurementSettings(savedReport, request, false);
-                pdfGenerationService.requestGeneration(savedReport.getId());
 
                 return savedReport.getId();
         }
@@ -328,7 +320,6 @@ public class SampleReportServiceImpl implements SampleReportService {
                 }
 
                 sampleReportRepository.delete(report);
-                pdfGenerationService.discardCachedPdf(reportId);
         }
 
         private MarketSegment createSegment(SegmentRequest request, SampleReport report,
@@ -443,6 +434,10 @@ public class SampleReportServiceImpl implements SampleReportService {
 
                 response.setCompanies(companies);
 
+                response.setCountriesByRegion(
+                                com.sample_generator.sample.pdf.regional.RegionalGeoCatalog
+                                                .readConfiguredCountries(report));
+
                 return response;
         }
 
@@ -522,6 +517,7 @@ public class SampleReportServiceImpl implements SampleReportService {
                                 request.getMeasurementUnit(),
                                 isMeasurementScale(request.getUnit()) ? request.getUnit() : null);
                 reportConfigService.mergeMeasurementSettings(report, measurementType, currency, unit);
+                reportConfigService.mergeCountriesByRegion(report, request.getCountriesByRegion());
                 if (syncOriginal) {
                         reportConfigService.syncOriginalConfigWithWorking(report);
                 }

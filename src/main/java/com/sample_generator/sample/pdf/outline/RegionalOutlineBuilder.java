@@ -108,21 +108,9 @@ public final class RegionalOutlineBuilder {
             section++;
         }
 
-        List<MarketSegment> countryNodes = countries;
-        if (countryNodes == null || countryNodes.isEmpty()) {
-            countryNodes = stubCountries(regionName);
-        }
+        List<MarketSegment> countryNodes = RegionalGeoCatalog.countryNodesForRegion(
+                regionName, report, countries);
         appendGeoTocEntries(entries, countryNodes, regionPrefix, section, market, report, 2);
-    }
-
-    private static List<MarketSegment> stubCountries(String regionName) {
-        List<MarketSegment> stubs = new ArrayList<>();
-        for (String country : RegionalGeoCatalog.countriesForRegion(regionName)) {
-            MarketSegment stub = new MarketSegment();
-            stub.setSegmentName(country);
-            stubs.add(stub);
-        }
-        return stubs;
     }
 
     private static void appendGeoTocEntries(
@@ -162,7 +150,7 @@ public final class RegionalOutlineBuilder {
             if (regionName == null || regionName.isBlank()) {
                 return List.of();
             }
-            return List.of(stubRegion(regionName.trim()));
+            return List.of(stubRegion(regionName.trim(), report));
         }
         return resolveRegions(roots);
     }
@@ -177,10 +165,10 @@ public final class RegionalOutlineBuilder {
         return List.of();
     }
 
-    private static MarketSegment stubRegion(String regionName) {
+    private static MarketSegment stubRegion(String regionName, SampleReport report) {
         MarketSegment stub = new MarketSegment();
         stub.setSegmentName(regionName);
-        stub.setChildren(stubCountries(regionName));
+        stub.setChildren(RegionalGeoCatalog.countryNodesForRegion(regionName, report, null));
         return stub;
     }
 
